@@ -204,6 +204,7 @@ CONVERT_URL_TO_LOWERCASE_BEFORE_COMPARISON
 \A/content/common-ui/resources/web/require-cfg.js.*\Z=Anonymous,Authenticated
 \A/content/data-access/resources/gwt/.*css\Z=Anonymous,Authenticated
 \A/webcontext.js.*\Z=Anonymous,Authenticated
+\A/appcontext.js.*\Z=Anonymous,Authenticated
 \A/content/common-ui/resources/web/cache/cache-service.js.*\Z=Anonymous,Authenticated
 \A/cacheexpirationservice.*\Z=Anonymous,Authenticated
 \A/js/theme.*\Z=Anonymous,Authenticated

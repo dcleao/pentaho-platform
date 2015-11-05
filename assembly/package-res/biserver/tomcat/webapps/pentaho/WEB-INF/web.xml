@@ -89,12 +89,16 @@
     </init-param>
   </filter>
 
-  <!--  Pentaho Web Context Filter checks to see if webcontext.js is being requested. It writes the content of webcontext.js
-        webcontext.js contains value for CONTEXT_PATH and FULLY_QUALIFIED_SERVER_URL
-    -->
+  <!-- Pentaho Web Context Filter checks to see if webcontext.js is being requested.
+       It writes JS code that defines the "pentaho/app" module, sets up AMD and loads external resources.
+   -->
   <filter>
     <filter-name>Pentaho Web Context Filter</filter-name>
     <filter-class>org.pentaho.platform.web.http.filters.PentahoWebContextFilter</filter-class>
+  </filter>
+  <filter>
+    <filter-name>Pentaho Web App Context Filter</filter-name>
+    <filter-class>org.pentaho.platform.web.http.filters.PentahoAppContextFilter</filter-class>
   </filter>
 
   <!-- insert additional filters -->
