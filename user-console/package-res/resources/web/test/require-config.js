@@ -3,15 +3,6 @@ var tests = Object.keys(window.__karma__.files).filter(function (file) {
     return (/Spec\.js$/).test(file);
 });
 
-pen = {};
-pen.require = function() {
-  return require.apply(this, arguments);
-} 
-pen.define = function() {
-  return define.apply(this, arguments);
-}
-
-
 var commonUi = 'build-res/module-scripts/common-ui/resources/web/';
 var mantle = 'source/org/pentaho/mantle/public/';
 

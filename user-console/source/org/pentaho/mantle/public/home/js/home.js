@@ -123,7 +123,7 @@ define([
   }
 
   function initFavoritesAndRecents(config) {
-    pen.require(["home/FavoritesController"], function (FavoritesController) {
+    require(["home/FavoritesController"], function(FavoritesController) {
       controller = new FavoritesController(config);
     });
   }

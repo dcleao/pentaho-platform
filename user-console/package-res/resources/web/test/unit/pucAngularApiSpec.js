@@ -4,7 +4,7 @@ var deps = [
     'common-ui/angular'
 ];
 
-pen.define(deps, function(PUCAngularApi, PUCAngularPlugin, angular) {
+define(deps, function(PUCAngularApi, PUCAngularPlugin, angular) {
 
     describe("PUC Angular API", function() {
 

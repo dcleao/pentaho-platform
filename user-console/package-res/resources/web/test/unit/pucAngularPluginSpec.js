@@ -4,7 +4,7 @@ var deps = [
     'common-ui/AnimatedAngularPluginHandler'
 ];
 
-pen.define(deps, function(PUCAngularPlugin, PUCAngularApi, AnimatedAngularPluginHandler) {
+define(deps, function(PUCAngularPlugin, PUCAngularApi, AnimatedAngularPluginHandler) {
 
     describe("PUC Angular Plugin", function() {
         

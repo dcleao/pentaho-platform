@@ -4,7 +4,7 @@ var deps = [
     'common-ui/jquery'
 ];
 
-pen.define(deps, function(GwtDialogHandlerApi, angular, $) {
+define(deps, function(GwtDialogHandlerApi, angular, $) {
 
     describe("GWT Dialog Handler Api", function() {
                 

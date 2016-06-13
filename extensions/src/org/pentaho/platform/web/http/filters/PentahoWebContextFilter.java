@@ -264,7 +264,7 @@ public class PentahoWebContextFilter implements Filter {
           "var SESSION_LOCALE = '" + effectiveLocale.toString() + "';\n" ) // Global variable
             // If RequireJs is available, supply a module
             .append(
-              "if(typeof(pen) != 'undefined' && pen.define){pen.define('Locale', {locale:'"
+              "if(typeof define !== 'undefined') { define('Locale', {locale:'"
                 + effectiveLocale.toString() + "'})};" );
     out.write( sb.toString().getBytes() );
   }
