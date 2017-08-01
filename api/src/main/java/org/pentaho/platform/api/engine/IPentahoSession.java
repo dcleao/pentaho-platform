@@ -57,6 +57,16 @@ public interface IPentahoSession extends ILogger, IAuditable {
   public String getId();
 
   /**
+   * Gets the HTTP session cookie of this session. This is typically the string <code>"JSESSIONID="</code> followed
+   * by a GUID or semi-unique string.
+   *
+   * This is identifier is appropriate for use in a cookie HTTP request header.
+   *
+   * @return Returns the HTTP session cookie of this session, if there is one; <code>null</code>, otherwise.
+   */
+  public String getHttpId();
+
+  /**
    * Sets the name of the action sequence document that the session is currently performing.
    * 
    * @param actionName

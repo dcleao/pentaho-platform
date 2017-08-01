@@ -113,6 +113,10 @@ public abstract class BaseSession extends PentahoBase implements IPentahoSession
     return id;
   }
 
+  public String getHttpId() {
+    return null;
+  }
+
   /*
    * (non-Javadoc)
    * 

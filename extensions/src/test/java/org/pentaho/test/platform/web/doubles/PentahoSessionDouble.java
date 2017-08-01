@@ -42,6 +42,8 @@ public class PentahoSessionDouble extends LoggerDouble implements IPentahoSessio
 
   private String id;
 
+  private String httpId;
+
   private String processId;
 
   private String actionName;
@@ -63,6 +65,7 @@ public class PentahoSessionDouble extends LoggerDouble implements IPentahoSessio
     this.actionName = ""; //$NON-NLS-1$
     this.authenticated = false;
     backgroundExecutionAlert = false;
+    this.httpId = null;
   }
 
   // ~ Methods =========================================================================================================
@@ -85,6 +88,14 @@ public class PentahoSessionDouble extends LoggerDouble implements IPentahoSessio
 
   public String getId() {
     return id;
+  }
+
+  public String getHttpId() {
+    return httpId;
+  }
+
+  public void setHttpId( final String httpId ) {
+    this.httpId = httpId;
   }
 
   public Locale getLocale() {

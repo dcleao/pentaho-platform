@@ -28,6 +28,8 @@ import org.pentaho.platform.engine.core.solution.PentahoSessionParameterProvider
 import org.pentaho.platform.engine.core.system.BaseSession;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 
+import javax.servlet.ServletContext;
+import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpSession;
 import java.util.Iterator;
 import java.util.Locale;
@@ -35,6 +37,8 @@ import java.util.Locale;
 public class PentahoHttpSession extends BaseSession {
 
   private static final long serialVersionUID = 1500696455420691764L;
+
+  private static final String DEFAULT_SESSION_COOKIE_NAME = "JSESSIONID";
 
   private HttpSession session;
 
@@ -56,6 +60,27 @@ public class PentahoHttpSession extends BaseSession {
     // run any session initialization actions
     IParameterProvider sessionParameters = new PentahoSessionParameterProvider( userSession );
     PentahoSystem.sessionStartup( this, sessionParameters );
+  }
+
+  public String getHttpId() {
+    return this.getSessionCookieName() + "=" + this.session.getId();
+  }
+
+  private String getSessionCookieName() {
+    String cookieName = "";
+    ServletContext servletContext = this.session.getServletContext();
+    if (servletContext != null) {
+      SessionCookieConfig cookieConfig = servletContext.getSessionCookieConfig();
+      if ( cookieConfig != null ) {
+        cookieName = cookieConfig.getName();
+      }
+    }
+
+    if( cookieName == null || cookieName.length() == 0) {
+      cookieName = DEFAULT_SESSION_COOKIE_NAME;
+    }
+
+    return cookieName;
   }
 
   @SuppressWarnings( "rawtypes" )
