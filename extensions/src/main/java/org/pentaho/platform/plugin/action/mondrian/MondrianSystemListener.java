@@ -18,10 +18,14 @@
 package org.pentaho.platform.plugin.action.mondrian;
 
 import mondrian.olap.MondrianProperties;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPentahoSystemListener;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.plugin.action.messages.Messages;
+import org.pentaho.platform.plugin.services.metadata.vfs.MetadataToMondrianVfs;
 import org.pentaho.platform.util.logging.Logger;
 
 import java.io.File;
@@ -50,6 +54,20 @@ public class MondrianSystemListener implements IPentahoSystemListener {
         MondrianProperties.instance().load( is );
         Logger.debug( MondrianSystemListener.class.getName(), Messages.getInstance().getString(
             "MondrianSystemListener.PROPERTY_FILE_LOADED", mondrianPropsFilename ) ); //$NON-NLS-1$
+
+
+        // Setup special mondrian VFS
+        try {
+          ( (DefaultFileSystemManager) VFS.getManager() ).addProvider( "mtm", new MetadataToMondrianVfs() );
+        } catch ( FileSystemException e ) {
+          if ( e.getCode().equals( "vfs.impl/multiple-providers-for-scheme.error" ) ) {
+            // it's already registered. just log it as info
+            Logger.error( MondrianSystemListener.class.getName(), "There is already a vfs provider registered for scheme mtm", e );
+          } else {
+            Logger.error( MondrianSystemListener.class.getName(), "There is already a vfs provider registered for scheme mtm", e );
+          }
+        }
+
       } else {
         Logger.warn( MondrianSystemListener.class.getName(), Messages.getInstance().getString(
             "MondrianSystemListener.PROPERTY_FILE_NOT_FOUND", mondrianPropsFilename ) ); //$NON-NLS-1$
