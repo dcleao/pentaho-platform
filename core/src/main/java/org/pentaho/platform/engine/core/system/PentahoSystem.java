@@ -150,9 +150,7 @@ public class PentahoSystem {
 
   private static List<ISessionStartupAction> sessionStartupActions = new ArrayList<>();
 
-  private static AggregateObjectFactory aggObjectFactory = new AggregateObjectFactory();
-
-  private static OSGIRuntimeObjectFactory runtimeObjectFactory;
+  private static PentahoSystemObjectFactory aggObjectFactory = new PentahoSystemObjectFactory();
 
   private static final Map initializationFailureDetailsMap = Collections.synchronizedMap( new HashMap() );
 
@@ -209,9 +207,6 @@ public class PentahoSystem {
   // the console
 
   static {
-
-    defaultObjectFactory();
-
     PentahoSystem.KnownOptionalObjects.add( PentahoSystem.SOLUTION_REPOSITORY );
     PentahoSystem.KnownOptionalObjects.add( PentahoSystem.ACL_VOTER );
     PentahoSystem.KnownOptionalObjects.add( PentahoSystem.CONDITIONAL_EXECUTION );
@@ -229,13 +224,8 @@ public class PentahoSystem {
     PentahoSystem.IgnoredObjects.add( "IAuditEntry" ); //$NON-NLS-1$
   }
 
-  private static void defaultObjectFactory() {
-    runtimeObjectFactory = new OSGIRuntimeObjectFactory();
-    aggObjectFactory.registerObjectFactory( PentahoSystem.runtimeObjectFactory );
-  }
-
   public static void setBundleContext( BundleContext context ) {
-    runtimeObjectFactory.setBundleContext( context );
+    aggObjectFactory.setBundleContext( context );
   }
 
   public static boolean init() {
@@ -660,7 +650,7 @@ public class PentahoSystem {
     }
   }
 
-  private static final boolean hasFailed( final int errorToCheck ) {
+  private static boolean hasFailed( final int errorToCheck ) {
     return ( ( PentahoSystem.initializedStatus & errorToCheck ) == errorToCheck );
   }
 
@@ -1344,6 +1334,10 @@ public class PentahoSystem {
     return aggObjectFactory;
   }
 
+  public static IPentahoRegistrableObjectFactory getRegistrableObjectFactory() {
+    return aggObjectFactory;
+  }
+
   /**
    * Registers the factory that will create and manage Pentaho system objects.
    *
@@ -1479,7 +1473,6 @@ public class PentahoSystem {
 
   public static void clearObjectFactory() {
     aggObjectFactory.clear();
-    defaultObjectFactory();
   }
 
   /**
@@ -1492,7 +1485,7 @@ public class PentahoSystem {
    */
   public static <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference,
       IPentahoRegistrableObjectFactory.Types types ) {
-    return PentahoSystem.runtimeObjectFactory.registerReference( reference, types );
+    return aggObjectFactory.registerReference( reference, types );
   }
 
   /**
@@ -1502,7 +1495,7 @@ public class PentahoSystem {
    * @param obj
    */
   public static IPentahoObjectRegistration registerObject( Object obj ) {
-    return PentahoSystem.runtimeObjectFactory.registerObject( obj );
+    return aggObjectFactory.registerObject( obj );
   }
 
   /**
@@ -1513,7 +1506,7 @@ public class PentahoSystem {
    * @param types
    */
   public static IPentahoObjectRegistration registerObject( Object obj, IPentahoRegistrableObjectFactory.Types types ) {
-    return PentahoSystem.runtimeObjectFactory.registerObject( obj, types );
+    return aggObjectFactory.registerObject( obj, types );
   }
 
   /**
@@ -1523,7 +1516,7 @@ public class PentahoSystem {
    * @param <T>
    */
   public static <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference ) {
-    return PentahoSystem.runtimeObjectFactory.registerReference( reference );
+    return aggObjectFactory.registerReference( reference );
   }
 
   /**
@@ -1534,7 +1527,7 @@ public class PentahoSystem {
    * @param classes
    */
   public static <T> IPentahoObjectRegistration registerObject( T obj, Class<?>... classes ) {
-    return PentahoSystem.runtimeObjectFactory.registerObject( obj, classes );
+    return aggObjectFactory.registerObject( obj, classes );
   }
 
   /**
@@ -1547,6 +1540,6 @@ public class PentahoSystem {
    */
   public static <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference,
       Class<?>... classes ) {
-    return PentahoSystem.runtimeObjectFactory.registerReference( reference, classes );
+    return aggObjectFactory.registerReference( reference, classes );
   }
 }

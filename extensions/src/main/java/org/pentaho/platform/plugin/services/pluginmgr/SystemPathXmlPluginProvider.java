@@ -67,7 +67,7 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
    * Gets the list of plugins that this provider class has discovered.
    * 
    * @return an read-only list of plugins
-   * @see IPluginProvider#getPlugins()
+   * @see IPluginProvider#getPlugins( IPentahoSession )
    * @throws PlatformPluginRegistrationException
    *           if there is a problem preventing the impl from looking for plugins
    */
