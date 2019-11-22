@@ -751,11 +751,12 @@ public class PentahoSystemPluginManager implements IPluginManager {
 
     Class<Object> facetDataClass = facet.getDataClass();
     Object facetData = facetStore.get( plugin, facetDataClass );
-    assert( facetData != null );
+    // There may be a Loader but no XmlReader, in which case `null` is received.
+    if ( facetData != null ) {
+      Closeable closeable = loader.load( plugin, facetData, PentahoSystem.getRegistrableObjectFactory() );
 
-    Closeable closeable = loader.load( plugin, facetData, PentahoSystem.getRegistrableObjectFactory() );
-
-    registerCloseable( closeable );
+      registerCloseable( closeable );
+    }
   }
 
   private GenericApplicationContext createBeanFactory( IPlatformPlugin plugin, ClassLoader classloader )

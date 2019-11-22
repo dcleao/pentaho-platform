@@ -33,7 +33,7 @@ public class PlatformPluginFacetStore implements IPlatformPluginFacetStore {
   }
 
   @Override
-  public synchronized <TFacetData> TFacetData get(IPlatformPlugin plugin, Class<TFacetData> facetDataClass) {
+  public synchronized <TFacetData> TFacetData get( IPlatformPlugin plugin, Class<TFacetData> facetDataClass ) {
     Map<Class, Object> pluginFacetsMap = store.get( plugin );
     if ( pluginFacetsMap == null ) {
       return null;
@@ -44,13 +44,16 @@ public class PlatformPluginFacetStore implements IPlatformPluginFacetStore {
   }
 
   @Override
-  public synchronized <TFacetData> void set(IPlatformPlugin plugin, Class<TFacetData> facetDataClass, TFacetData value) {
+  public synchronized <TFacetData> void set(
+      IPlatformPlugin plugin,
+      Class<TFacetData> facetDataClass,
+      TFacetData value ) {
     store.computeIfAbsent( plugin, k -> new HashMap<>() )
         .put( facetDataClass, value );
   }
 
   @Override
-  public synchronized <TFacetData> void clear(IPlatformPlugin plugin, Class<TFacetData> facetDataClass) {
+  public synchronized <TFacetData> void clear( IPlatformPlugin plugin, Class<TFacetData> facetDataClass ) {
     Map<Class, Object> pluginFacetsMap = store.get( plugin );
     if ( pluginFacetsMap != null ) {
       pluginFacetsMap.remove( facetDataClass );
@@ -58,7 +61,7 @@ public class PlatformPluginFacetStore implements IPlatformPluginFacetStore {
   }
 
   @Override
-  public synchronized <TFacetData> boolean contains(IPlatformPlugin plugin, Class<TFacetData> facetDataClass) {
+  public synchronized <TFacetData> boolean contains( IPlatformPlugin plugin, Class<TFacetData> facetDataClass ) {
     Map<Class, Object> pluginFacetsMap = store.get( plugin );
     if ( pluginFacetsMap == null ) {
       return false;

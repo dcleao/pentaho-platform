@@ -22,15 +22,15 @@ package org.pentaho.platform.api.engine;
  * and holds the facet's values for all plugins.
  */
 
-// IPlatformPluginFacet facet-id=FacetTypeFullyQualifiedName
 /**
  * The {@link IPlatformPluginFacet} represents a facet of Pentaho platform plugins.
  */
 public interface IPlatformPluginFacet {
   /**
-   * The property which services of {@link IPlatformPluginFacetLoader}
-   * should have specifying the fully qualified class name of the associated
-   * facet data class.
+   * The property of factory registrations of {@link IPlatformPluginFacetLoader}
+   * which specifies the class name of the associated facet data class.
+   *
+   * @see java.lang.Class#getName()
    */
   String SERVICE_PROPERTY_FACET_ID = "facet-id";
 
