@@ -51,7 +51,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class AggregateObjectFactory implements IPentahoObjectFactory {
   protected final Set<IPentahoObjectFactory> factories =
-      Collections.synchronizedSet( new HashSet<IPentahoObjectFactory>() );
+      Collections.synchronizedSet( new HashSet<>() );
   protected IPentahoObjectFactory primaryFactory;
   private Logger logger = LoggerFactory.getLogger( AggregateObjectFactory.class );
 

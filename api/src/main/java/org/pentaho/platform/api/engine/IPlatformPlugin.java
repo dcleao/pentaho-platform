@@ -182,10 +182,11 @@ public interface IPlatformPlugin extends IPluginLifecycleListener {
    * Gets the value of the facet of a given type, if any, or {@code null}, if none.
    *
    * @param facetDataClass - The facet data class.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
+   * @param <TFacetValue> The class of the facet value.
    * @return The facet data.
    */
-  default <TFacetData> TFacetData getFacet( Class<TFacetData> facetDataClass ) {
+  default <TFacetBase, TFacetValue extends TFacetBase> TFacetValue getFacet( Class<TFacetBase> facetDataClass ) {
     return PlatformPluginFacetInMemoryStore.getInstance().get( this, facetDataClass );
   }
 
@@ -194,9 +195,12 @@ public interface IPlatformPlugin extends IPluginLifecycleListener {
    *
    * @param facetDataClass - The facet data class.
    * @param value - The facet data.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
+   * @param <TFacetValue> The class of the facet value.
    */
-  default <TFacetData> void setFacet( Class<TFacetData> facetDataClass, TFacetData value ) {
+  default <TFacetBase, TFacetValue extends TFacetBase> void setFacet(
+      Class<TFacetBase> facetDataClass,
+      TFacetValue value ) {
     PlatformPluginFacetInMemoryStore.getInstance().set( this, facetDataClass, value );
   }
 
@@ -204,9 +208,9 @@ public interface IPlatformPlugin extends IPluginLifecycleListener {
    * Clears the value of the facet of a given type.
    *
    * @param facetDataClass - The facet data class.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
    */
-  default <TFacetData> void clearFacet( Class<TFacetData> facetDataClass ) {
+  default <TFacetBase> void clearFacet( Class<TFacetBase> facetDataClass ) {
     PlatformPluginFacetInMemoryStore.getInstance().clear( this, facetDataClass );
   }
 
@@ -214,10 +218,10 @@ public interface IPlatformPlugin extends IPluginLifecycleListener {
    * Gets a value that indicates if there is non-{@code null} facet data of a given type.
    *
    * @param facetDataClass - The facet data class.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
    * @return {@code true} if there is non-{@code null} facet data; {@code false}, otherwise.
    */
-  default <TFacetData> boolean containsFacet( Class<TFacetData> facetDataClass ) {
+  default <TFacetBase> boolean containsFacet( Class<TFacetBase> facetDataClass ) {
     return this.getFacet( facetDataClass ) != null;
   }
   // endregion

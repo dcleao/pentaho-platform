@@ -377,6 +377,7 @@ public class PentahoSystemPluginManager implements IPluginManager {
       final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders )
       throws PlatformPluginRegistrationException,
       PluginLifecycleException {
+
     // TODO: we should treat the registration of a plugin as an atomic operation
     // with rollback if something is broken
 
@@ -726,20 +727,9 @@ public class PentahoSystemPluginManager implements IPluginManager {
       final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders ) {
 
     if ( facetLoaders != null ) {
-      facetLoaders.forEach( ( facet, loader ) -> registerFacet( plugin, facet, loader ) );
-    }
-  }
+      IPentahoRegistrableObjectFactory objectFactory = PentahoSystem.getRegistrableObjectFactory();
 
-  private void registerFacet(
-      final IPlatformPlugin plugin,
-      final IPlatformPluginFacet facet,
-      final IPlatformPluginFacetLoader loader ) {
-
-    Object facetData = plugin.getFacet( facet.getDataClass() );
-    if ( facetData != null ) {
-      Closeable closeable = loader.load( plugin, facetData, PentahoSystem.getRegistrableObjectFactory() );
-
-      registerCloseable( closeable );
+      facetLoaders.forEach( ( facet, loader ) -> registerCloseable( loader.load( plugin, facet, objectFactory ) ) );
     }
   }
 
@@ -750,7 +740,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
           "Can't determine plugin dir to load spring file because classloader is not of type PluginClassLoader.  "
               + "This is since we are probably in a unit test"
       );
-
     }
 
     //
@@ -863,7 +852,9 @@ public class PentahoSystemPluginManager implements IPluginManager {
   }
 
   private void registerCloseable( Closeable closeable ) {
-    this.closeablesRegistry.add( closeable );
+    if ( closeable != null ) {
+      this.closeablesRegistry.add( closeable );
+    }
   }
 
   private ClassLoader createClassloader( IPlatformPlugin plugin ) throws PlatformPluginRegistrationException {

@@ -34,7 +34,7 @@ class PlatformPluginFacetInMemoryStore {
     return instance;
   }
 
-  private final WeakHashMap<IPlatformPlugin, Map<Class, Object>> store;
+  private final WeakHashMap<IPlatformPlugin, Map<Class<?>, Object>> store;
 
   private PlatformPluginFacetInMemoryStore() {
     store = new WeakHashMap<>();
@@ -45,17 +45,22 @@ class PlatformPluginFacetInMemoryStore {
    *
    * @param plugin - The platform plugin.
    * @param facetDataClass - The facet data class.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
+   * @param <TFacetValue> The class of the facet value.
    * @return The facet data.
    */
-  public synchronized <TFacetData> TFacetData get( IPlatformPlugin plugin, Class<TFacetData> facetDataClass ) {
-    Map<Class, Object> pluginFacetsMap = store.get( plugin );
+  @SuppressWarnings( "unchecked" )
+  public synchronized <TFacetBase, TFacetValue extends TFacetBase> TFacetValue get(
+      IPlatformPlugin plugin,
+      Class<TFacetBase> facetDataClass ) {
+
+    Map<Class<?>, Object> pluginFacetsMap = store.get( plugin );
     if ( pluginFacetsMap == null ) {
       return null;
     }
 
-    // noinspection unchecked
-    return (TFacetData) pluginFacetsMap.get( facetDataClass );
+    // Suppressing warning unchecked due to this cast.
+    return (TFacetValue) pluginFacetsMap.get( facetDataClass );
   }
 
   /**
@@ -64,13 +69,15 @@ class PlatformPluginFacetInMemoryStore {
    * @param plugin - The platform plugin.
    * @param facetDataClass - The facet data class.
    * @param value - The facet data.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
+   * @param <TFacetValue> The class of the facet value.
    */
-  public synchronized <TFacetData> void set(
+  public synchronized <TFacetBase, TFacetValue extends TFacetBase> void set(
       IPlatformPlugin plugin,
-      Class<TFacetData> facetDataClass,
-      TFacetData value ) {
-    store.computeIfAbsent( plugin, k -> new HashMap<>() )
+      Class<TFacetBase> facetDataClass,
+      TFacetValue value ) {
+
+    store.computeIfAbsent( plugin, pluginWithoutProps -> new HashMap<>() )
         .put( facetDataClass, value );
   }
 
@@ -79,10 +86,10 @@ class PlatformPluginFacetInMemoryStore {
    *
    * @param plugin - The platform plugin.
    * @param facetDataClass - The facet data class.
-   * @param <TFacetData> The facet data class.
+   * @param <TFacetBase> The base class of the facet data.
    */
-  public synchronized <TFacetData> void clear( IPlatformPlugin plugin, Class<TFacetData> facetDataClass ) {
-    Map<Class, Object> pluginFacetsMap = store.get( plugin );
+  public synchronized <TFacetBase> void clear( IPlatformPlugin plugin, Class<TFacetBase> facetDataClass ) {
+    Map<Class<?>, Object> pluginFacetsMap = store.get( plugin );
     if ( pluginFacetsMap != null ) {
       pluginFacetsMap.remove( facetDataClass );
     }

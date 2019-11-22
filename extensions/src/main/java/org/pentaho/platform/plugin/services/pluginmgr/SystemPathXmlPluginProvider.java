@@ -68,13 +68,28 @@ import java.util.Map;
  */
 public class SystemPathXmlPluginProvider implements IPluginProvider {
 
-  private Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> facetReaders = null;
+  private Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> facetReadersMap = null;
 
   public SystemPathXmlPluginProvider() {
     this( PentahoSystem.getRegistrableObjectFactory(), PentahoSessionHolder.getSession() );
   }
 
   public SystemPathXmlPluginProvider( IPentahoRegistrableObjectFactory objectFactory, IPentahoSession session ) {
+    facetReadersMap = getFacetReadersMap( objectFactory, session );
+  }
+
+  /**
+   * Determines the registered facet readers.
+   *
+   * @param objectFactory - The Pentaho object factory.
+   * @param session  - The Pentaho session.
+   * @return The map of facet readers.
+   */
+  private Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> getFacetReadersMap(
+      IPentahoRegistrableObjectFactory objectFactory,
+      IPentahoSession session ) {
+
+    Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> facetReadersMap = null;
 
     List<IPlatformPluginFacet> facets = objectFactory.getAllOptional( IPlatformPluginFacet.class, session );
     if ( facets != null && facets.size() > 0 ) {
@@ -90,14 +105,16 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
 
         if ( reader != null ) {
           // First existing reader creates the map.
-          if ( this.facetReaders == null ) {
-            this.facetReaders = new LinkedHashMap<>();
+          if ( facetReadersMap == null ) {
+            facetReadersMap = new LinkedHashMap<>();
           }
 
-          facetReaders.put( facet, reader );
+          facetReadersMap.put( facet, reader );
         }
       }
     }
+
+    return facetReadersMap;
   }
 
   /**
@@ -513,33 +530,10 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
 
   protected void processFacets( PlatformPlugin plugin, Document doc ) {
 
-    if ( facetReaders != null ) {
-      Element pluginDefinition = (Element) doc.selectSingleNode( "//plugin" );
+    if ( facetReadersMap != null ) {
+      Element pluginDefinition = doc.getRootElement();
 
-      for (Map.Entry<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> entry : facetReaders.entrySet() ) {
-        processFacet( plugin, pluginDefinition, entry.getKey(), entry.getValue() );
-      }
+      facetReadersMap.forEach( ( facet, reader ) -> reader.read( plugin, facet, pluginDefinition ) );
     }
-  }
-
-  protected void processFacet(
-      PlatformPlugin plugin,
-      Element pluginDefinition,
-      IPlatformPluginFacet facet,
-      IPlatformPluginFacetXmlReader reader ) {
-
-    Class<Object> facetDataClass = facet.getDataClass();
-    Object facetData = reader.read( pluginDefinition );
-    if ( facetData != null && !facetDataClass.isAssignableFrom( facetData.getClass() ) ) {
-      // Log and ignore.
-      PluginMessageLogger.add(
-          Messages.getInstance().getString(
-              "PluginManager.WARN_FACET_XML_READER_INVALID_DATA",
-              plugin.getId(),
-              facetDataClass.getName() ) );
-      return;
-    }
-
-    plugin.setFacet( facetDataClass, facetData );
   }
 }

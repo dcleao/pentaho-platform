@@ -28,7 +28,7 @@ import java.io.Closeable;
  */
 public interface IPlatformPluginFacetLoader {
   /**
-   * Loads the facet of a given plugin, given the facet data, in a given Pentaho system.
+   * Loads the facet of a given plugin, in a given Pentaho system.
    *
    * If needed, the plugin's {@link ClassLoader} can be obtained from:
    * <pre>{@code
@@ -43,7 +43,7 @@ public interface IPlatformPluginFacetLoader {
    * }</pre>
    *
    * @param plugin - The platform plugin.
-   * @param pluginFacetData - The facet data.
+   * @param facet - The plugin facet being loaded.
    * @param pentahoSystemObjectFactory - The object factory of the Pentaho system.
    *
    * @return A closeable instance which, when closed, allows unloading the plugin facet
@@ -51,7 +51,7 @@ public interface IPlatformPluginFacetLoader {
    */
   Closeable load(
       IPlatformPlugin plugin,
-      Object pluginFacetData,
+      IPlatformPluginFacet facet,
       IPentahoRegistrableObjectFactory pentahoSystemObjectFactory
   );
 }

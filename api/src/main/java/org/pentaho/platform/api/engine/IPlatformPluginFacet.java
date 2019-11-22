@@ -39,5 +39,5 @@ public interface IPlatformPluginFacet {
    *
    * @return The facet data class.
    */
-  Class<Object> getDataClass();
+  Class<?> getDataClass();
 }

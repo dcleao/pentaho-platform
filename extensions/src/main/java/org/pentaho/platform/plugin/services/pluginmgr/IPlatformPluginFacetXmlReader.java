@@ -18,6 +18,8 @@
 package org.pentaho.platform.plugin.services.pluginmgr;
 
 import org.dom4j.Element;
+import org.pentaho.platform.api.engine.IPlatformPlugin;
+import org.pentaho.platform.api.engine.IPlatformPluginFacet;
 
 /**
  * The {@link IPlatformPluginFacetXmlReader} interface supports the {@link SystemPathXmlPluginProvider} class
@@ -28,11 +30,13 @@ import org.dom4j.Element;
  */
 public interface IPlatformPluginFacetXmlReader {
   /**
-   * Reads the facet data from a given plugin definition in XML format.
+   * Reads the facet data from a given plugin definition in XML format
+   * and sets it in the given plugin.
    *
+   * @param plugin - The platform plugin to which the definition belongs.
+   * @param facet - The plugin facet which is being read.
    * @param pluginDefinition - The root element of the XML plugin definition.
-   * @return An instance of the plugin's facet data class (never {@code null}).
    */
-  Object read( Element pluginDefinition );
+  void read(IPlatformPlugin plugin, IPlatformPluginFacet facet, Element pluginDefinition );
 }
 
