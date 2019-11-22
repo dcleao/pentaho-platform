@@ -22,6 +22,9 @@ import java.io.Closeable;
 /**
  * The {@link IPlatformPluginFacetLoader} interface holds the knowledge to load and unload a
  * facet of a plugin in a given Pentaho system.
+ *
+ * The {@link IPlatformPluginFacetLoader} interface should be registered as a service
+ * having as property {@code facet-id} the fully qualified name of the facet data class.
  */
 public interface IPlatformPluginFacetLoader {
   /**

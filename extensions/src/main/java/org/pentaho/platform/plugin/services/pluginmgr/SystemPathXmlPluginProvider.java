@@ -26,9 +26,14 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.pentaho.platform.api.engine.CsrfProtectionDefinition;
 import org.pentaho.platform.api.engine.IContentGeneratorInfo;
+import org.pentaho.platform.api.engine.IPentahoObjectFactory;
+import org.pentaho.platform.api.engine.IPentahoRegistrableObjectFactory;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPlatformPlugin;
+import org.pentaho.platform.api.engine.IPlatformPluginFacet;
+import org.pentaho.platform.api.engine.IPlatformPluginFacetStore;
 import org.pentaho.platform.api.engine.IPluginProvider;
+import org.pentaho.platform.api.engine.ObjectFactoryException;
 import org.pentaho.platform.api.engine.PlatformPluginRegistrationException;
 import org.pentaho.platform.api.engine.PluginBeanDefinition;
 import org.pentaho.platform.api.engine.PluginServiceDefinition;
@@ -37,6 +42,7 @@ import org.pentaho.platform.api.repository2.unified.RepositoryFile;
 import org.pentaho.platform.engine.core.solution.ContentGeneratorInfo;
 import org.pentaho.platform.engine.core.solution.ContentInfo;
 import org.pentaho.platform.engine.core.solution.PluginOperation;
+import org.pentaho.platform.engine.core.system.PentahoSessionHolder;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.engine.services.SolutionURIResolver;
 import org.pentaho.platform.engine.services.actionsequence.ActionSequenceResource;
@@ -53,7 +59,9 @@ import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An implementation of {@link IPluginProvider} that searches for plugin.xml files in the Pentaho system path and
@@ -62,6 +70,84 @@ import java.util.List;
  * @author aphillips
  */
 public class SystemPathXmlPluginProvider implements IPluginProvider {
+
+  private IPlatformPluginFacetStore facetStore = null;
+  private Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> facetReaders = null;
+
+  public SystemPathXmlPluginProvider() {
+    this( PentahoSystem.getRegistrableObjectFactory(), PentahoSessionHolder.getSession() );
+  }
+
+  public SystemPathXmlPluginProvider( IPentahoRegistrableObjectFactory objectFactory, IPentahoSession session ) {
+
+    IPlatformPluginFacetStore facetStore = getOptional( objectFactory, IPlatformPluginFacetStore.class, session );
+    if ( facetStore != null ) {
+
+      List<IPlatformPluginFacet> facets = getAllOptional( objectFactory, IPlatformPluginFacet.class, session );
+      if ( facets != null && facets.size() > 0 ) {
+        for ( IPlatformPluginFacet facet : facets ) {
+          Map<String, String> props = Collections.singletonMap(
+              IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
+              facet.getDataClass().getName() );
+
+          IPlatformPluginFacetXmlReader reader = getOptional(
+              objectFactory,
+              IPlatformPluginFacetXmlReader.class,
+              session,
+              props );
+
+          if ( reader != null ) {
+            // First existing reader assigns the fields.
+            if ( this.facetStore == null ) {
+              this.facetStore = facetStore;
+              this.facetReaders = new LinkedHashMap<>();
+            }
+
+            facetReaders.put( facet, reader );
+          }
+        }
+      }
+    }
+  }
+
+  // region Object Factory Helpers
+  private static <T> T getOptional(
+      IPentahoObjectFactory objectFactory,
+      Class<T> interfaceClass,
+      IPentahoSession session ) {
+
+    try {
+      return objectFactory.get( interfaceClass, session );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
+
+  private static <T> T getOptional(
+      IPentahoObjectFactory objectFactory,
+      Class<T> interfaceClass,
+      IPentahoSession session,
+      Map<String, String> props) {
+
+    try {
+      return objectFactory.get( interfaceClass, session, props );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
+
+  private static <T> List<T> getAllOptional(
+      IPentahoObjectFactory objectFactory,
+      Class<T> interfaceClass,
+      IPentahoSession session ) {
+
+    try {
+      return objectFactory.getAll( interfaceClass, session );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
+  // endregion
 
   /**
    * Gets the list of plugins that this provider class has discovered.
@@ -152,6 +238,8 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
     processWebservices( plugin, doc );
     processExternalResources( plugin, doc );
     processPerspectives( plugin, doc );
+    processFacets( plugin, doc );
+
     processCsrfProtection( plugin, doc );
 
     String listenerCount = ( StringUtils.isEmpty( plugin.getLifecycleListenerClassname() ) ) ? "0" : "1"; //$NON-NLS-1$//$NON-NLS-2$
@@ -466,8 +554,41 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
             Messages.getInstance().getString(
                 "PluginManager.WARN_CSRF_REQUEST_MATCHER_NOT_REGISTERED",
                 plugin.getId(),
+                plugin.getId(),
                 parseError.getMessage() ) );
       }
     }
+  }
+
+  protected void processFacets( PlatformPlugin plugin, Document doc ) {
+
+    if ( facetStore != null ) {
+      Element pluginDefinition = (Element) doc.selectSingleNode( "//plugin" );
+
+      for (Map.Entry<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> entry : facetReaders.entrySet() ) {
+        processFacet( plugin, pluginDefinition, entry.getKey(), entry.getValue() );
+      }
+    }
+  }
+
+  protected void processFacet(
+      PlatformPlugin plugin,
+      Element pluginDefinition,
+      IPlatformPluginFacet facet,
+      IPlatformPluginFacetXmlReader reader ) {
+
+    Class<Object> facetDataClass = facet.getDataClass();
+    Object facetData = reader.read( pluginDefinition );
+    if ( facetData == null || !facetDataClass.isAssignableFrom( facetData.getClass() ) ) {
+      // Log and ignore.
+      PluginMessageLogger.add(
+          Messages.getInstance().getString(
+              "PluginManager.WARN_FACET_XML_READER_INVALID_DATA",
+              plugin.getId(),
+              facetDataClass.getName() ) );
+      return;
+    }
+
+    facetStore.set( plugin, facetDataClass, facetData );
   }
 }

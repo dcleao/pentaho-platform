@@ -1334,15 +1334,20 @@ public class PentahoSystem {
     return aggObjectFactory;
   }
 
+  /**
+   * Gets the factory that will create and manage Pentaho system objects,
+   * including the ability to create new registrations.
+   *
+   * @return The registrable object factory.
+   */
   public static IPentahoRegistrableObjectFactory getRegistrableObjectFactory() {
     return aggObjectFactory;
   }
 
   /**
-   * Registers the factory that will create and manage Pentaho system objects.
+   * Registers an object factory that will create and manage Pentaho system objects.
    *
-   * @param pentahoObjectFactory
-   *          the factory
+   * @param pentahoObjectFactory - the factory
    */
   public static void registerObjectFactory( IPentahoObjectFactory pentahoObjectFactory ) {
     PentahoSystem.aggObjectFactory.registerObjectFactory( pentahoObjectFactory );

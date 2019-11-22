@@ -28,9 +28,16 @@ package org.pentaho.platform.api.engine;
  */
 public interface IPlatformPluginFacet {
   /**
+   * The property which services of {@link IPlatformPluginFacetLoader}
+   * should have specifying the fully qualified class name of the associated
+   * facet data class.
+   */
+  String SERVICE_PROPERTY_FACET_ID = "facet-id";
+
+  /**
    * Gets the {@link Class} of the associated facet data class.
    *
    * @return The facet data class.
    */
-  Class getDataClass();
+  Class<Object> getDataClass();
 }

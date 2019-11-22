@@ -82,9 +82,6 @@ public class DefaultPluginManager implements IPluginManager {
 
   private static final String DEFAULT_PERSPECTIVE = "generatedContent";
 
-  // A namespacing prefix is added when registering meta provider objects in the object factory
-  private static final String METAPROVIDER_KEY_PREFIX = "METAPROVIDER-"; //$NON-NLS-1$
-
   protected Map<String, ClassLoader> classLoaderMap = Collections.synchronizedMap( new HashMap<String, ClassLoader>() );
 
   protected Map<String, GenericApplicationContext> beanFactoryMap = Collections

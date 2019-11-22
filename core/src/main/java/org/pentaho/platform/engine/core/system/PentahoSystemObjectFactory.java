@@ -48,32 +48,32 @@ public class PentahoSystemObjectFactory extends AggregateObjectFactory implement
 
   // region IPentahoRegistrableObjectFactory
   @Override
-  public <T> IPentahoObjectRegistration registerObject(T obj) {
+  public <T> IPentahoObjectRegistration registerObject( T obj ) {
     return runtimeObjectFactory.registerObject( obj );
   }
 
   @Override
-  public <T> IPentahoObjectRegistration registerObject(T obj, Types types) {
+  public <T> IPentahoObjectRegistration registerObject( T obj, Types types ) {
     return runtimeObjectFactory.registerObject( obj, types );
   }
 
   @Override
-  public <T> IPentahoObjectRegistration registerObject(T obj, Class<?>... classes) {
+  public <T> IPentahoObjectRegistration registerObject( T obj, Class<?>... classes ) {
     return runtimeObjectFactory.registerObject( obj, classes );
   }
 
   @Override
-  public <T> IPentahoObjectRegistration registerReference(IPentahoObjectReference<T> reference) {
+  public <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference ) {
     return runtimeObjectFactory.registerReference( reference );
   }
 
   @Override
-  public <T> IPentahoObjectRegistration registerReference(IPentahoObjectReference<T> reference, Types types) {
+  public <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference, Types types ) {
     return runtimeObjectFactory.registerReference( reference, types );
   }
 
   @Override
-  public <T> IPentahoObjectRegistration registerReference(IPentahoObjectReference<T> reference, Class<?>... classes) {
+  public <T> IPentahoObjectRegistration registerReference( IPentahoObjectReference<T> reference, Class<?>... classes ) {
     return runtimeObjectFactory.registerReference( reference, classes );
   }
   // endregion IPentahoRegistrableObjectFactory

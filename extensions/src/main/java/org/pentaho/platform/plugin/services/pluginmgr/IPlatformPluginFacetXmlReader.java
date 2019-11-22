@@ -19,9 +19,8 @@ package org.pentaho.platform.plugin.services.pluginmgr;
 
 import org.dom4j.Element;
 
-// IPlatformPluginFacetXmlReader facet-id=FacetTypeFullyQualifiedName
 /**
- * The {@link IPlatformPluginFacetXmlReader} interface supports the  {@link SystemPathXmlPluginProvider} class
+ * The {@link IPlatformPluginFacetXmlReader} interface supports the {@link SystemPathXmlPluginProvider} class
  * to enable reading facet data from a plugin definition XML element.
  *
  * The {@link IPlatformPluginFacetXmlReader} interface should be registered as a service

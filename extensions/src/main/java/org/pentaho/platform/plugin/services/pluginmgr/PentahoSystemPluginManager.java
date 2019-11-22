@@ -39,6 +39,9 @@ import org.pentaho.platform.api.engine.IPentahoRegistrableObjectFactory;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPlatformPlugin;
 import org.pentaho.platform.api.engine.IPlatformPluginCsrfProtection;
+import org.pentaho.platform.api.engine.IPlatformPluginFacet;
+import org.pentaho.platform.api.engine.IPlatformPluginFacetLoader;
+import org.pentaho.platform.api.engine.IPlatformPluginFacetStore;
 import org.pentaho.platform.api.engine.IPluginLifecycleListener;
 import org.pentaho.platform.api.engine.IPluginManager;
 import org.pentaho.platform.api.engine.IPluginManagerListener;
@@ -80,6 +83,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.FileSystemResource;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,6 +93,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -104,7 +109,6 @@ import java.util.Set;
 public class PentahoSystemPluginManager implements IPluginManager {
 
   private static final String DEFAULT_PERSPECTIVE = "generatedContent";
-  private static final String METAPROVIDER_KEY_PREFIX = "METAPROVIDER-";
   public static final String CONTENT_TYPE = "content-type";
   public static final String PLUGIN_ID = "plugin-id";
   public static final String SETTINGS_PREFIX = "settings/";
@@ -112,6 +116,9 @@ public class PentahoSystemPluginManager implements IPluginManager {
   private final Multimap<String, IPentahoObjectRegistration> handleRegistry =
       Multimaps.synchronizedMultimap( ArrayListMultimap
           .<String, IPentahoObjectRegistration>create() );
+
+  private final List<Closeable> closeablesRegistry = Collections.synchronizedList( new ArrayList<>() );
+
   private ISystemConfig systemConfig = PentahoSystem.get( ISystemConfig.class );
   private Logger logger = LoggerFactory.getLogger( getClass() );
   private Set<IPluginManagerListener> listeners = new HashSet<IPluginManagerListener>();
@@ -186,7 +193,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
 
   private void unloadPlugins() {
 
-
     // we do not need to synchronize here since unloadPlugins
     // is called within the synchronized block in reload
     for ( IPlatformPlugin plugin : PentahoSystem.getAll( IPlatformPlugin.class ) ) {
@@ -228,12 +234,19 @@ public class PentahoSystemPluginManager implements IPluginManager {
       }
     }
 
-
     for ( Map.Entry<String, IPentahoObjectRegistration> entry : handleRegistry.entries() ) {
       entry.getValue().remove();
     }
     handleRegistry.clear();
 
+    for ( Closeable closeable : closeablesRegistry ) {
+      try {
+        closeable.close();
+      } catch ( IOException e ) {
+        logger.error( "Error closing plugin facet", e );
+      }
+    }
+    closeablesRegistry.clear();
   }
 
   @Override
@@ -324,10 +337,15 @@ public class PentahoSystemPluginManager implements IPluginManager {
       }
     }
 
+    IPlatformPluginFacetStore facetStore = PentahoSystem.get( IPlatformPluginFacetStore.class, null );
+    Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders = null;
+    if ( facetStore != null ) {
+      facetLoaders = getFacetsMap();
+    }
 
     for ( IPlatformPlugin plugin : providedPlugins ) {
       try {
-        registerPlugin( plugin );
+        registerPlugin( plugin, facetStore, facetLoaders );
       } catch ( Throwable t ) {
         // this has been logged already
         anyErrors = true;
@@ -337,7 +355,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
         org.pentaho.platform.util.logging.Logger.error( getClass().toString(), msg, t );
         PluginMessageLogger.add( msg );
       }
-
     }
 
     IServiceManager svcManager = PentahoSystem.get( IServiceManager.class, null );
@@ -360,7 +377,11 @@ public class PentahoSystemPluginManager implements IPluginManager {
   }
 
   @SuppressWarnings( "unchecked" )
-  private void registerPlugin( final IPlatformPlugin plugin ) throws PlatformPluginRegistrationException,
+  private void registerPlugin(
+      final IPlatformPlugin plugin,
+      final IPlatformPluginFacetStore facetStore,
+      final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders )
+      throws PlatformPluginRegistrationException,
       PluginLifecycleException {
     // TODO: we should treat the registration of a plugin as an atomic operation
     // with rollback if something is broken
@@ -370,10 +391,12 @@ public class PentahoSystemPluginManager implements IPluginManager {
           "PluginManager.ERROR_0026_PLUGIN_INVALID", plugin.getSourceDescription() ) );
     }
 
-    ClassLoader loader = PentahoSystem.get( ClassLoader.class, null,
-        Collections.singletonMap( PLUGIN_ID, plugin.getId() ) );
+    ClassLoader loader = PentahoSystem
+        .get( ClassLoader.class, null, Collections.singletonMap( PLUGIN_ID, plugin.getId() ) );
+
     GenericApplicationContext beanFactory = PentahoSystem
         .get( GenericApplicationContext.class, null, Collections.singletonMap( PLUGIN_ID, plugin.getId() ) );
+
     createAndRegisterLifecycleListeners( plugin, loader );
 
     plugin.init();
@@ -391,6 +414,8 @@ public class PentahoSystemPluginManager implements IPluginManager {
     // service registry must take place after bean registry since
     // a service class may be configured as a plugin bean
     registerServices( plugin, loader, beanFactory );
+
+    registerFacets( plugin, facetStore, facetLoaders );
 
     if ( plugin instanceof IPlatformPluginCsrfProtection ) {
       registerCsrfProtection( plugin,  (IPlatformPluginCsrfProtection) plugin );
@@ -677,6 +702,62 @@ public class PentahoSystemPluginManager implements IPluginManager {
     }
   }
 
+  private Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> getFacetsMap() {
+    Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders = null;
+
+    IPlatformPluginFacetStore facetStore = PentahoSystem.get( IPlatformPluginFacetStore.class, null );
+    if ( facetStore != null ) {
+
+      List<IPlatformPluginFacet> facets = PentahoSystem.getAll( IPlatformPluginFacet.class, null );
+      if ( facets != null && facets.size() > 0 ) {
+        for ( IPlatformPluginFacet facet : facets ) {
+          Map<String, String> props = Collections.singletonMap(
+              IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
+              facet.getDataClass().getName() );
+
+          IPlatformPluginFacetLoader loader = PentahoSystem.get( IPlatformPluginFacetLoader.class, null, props );
+          if ( loader != null ) {
+            // First existing reader assigns the fields.
+            if ( facetLoaders == null ) {
+              facetLoaders = new LinkedHashMap<>();
+            }
+
+            facetLoaders.put( facet, loader );
+          }
+        }
+      }
+    }
+
+    return facetLoaders;
+  }
+
+  private void registerFacets(
+      final IPlatformPlugin plugin,
+      final IPlatformPluginFacetStore facetStore,
+      final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders ) {
+
+    if ( facetStore != null ) {
+      for (Map.Entry<IPlatformPluginFacet, IPlatformPluginFacetLoader> entry : facetLoaders.entrySet() ) {
+        registerFacet( plugin, facetStore, entry.getKey(), entry.getValue() );
+      }
+    }
+  }
+
+  private void registerFacet(
+      final IPlatformPlugin plugin,
+      final IPlatformPluginFacetStore facetStore,
+      final IPlatformPluginFacet facet,
+      final IPlatformPluginFacetLoader loader ) {
+
+    Class<Object> facetDataClass = facet.getDataClass();
+    Object facetData = facetStore.get( plugin, facetDataClass );
+    assert( facetData != null );
+
+    Closeable closeable = loader.load( plugin, facetData, PentahoSystem.getRegistrableObjectFactory() );
+
+    registerCloseable( closeable );
+  }
+
   private GenericApplicationContext createBeanFactory( IPlatformPlugin plugin, ClassLoader classloader )
       throws PlatformPluginRegistrationException {
     if ( !( classloader instanceof PluginClassLoader ) ) {
@@ -794,6 +875,10 @@ public class PentahoSystemPluginManager implements IPluginManager {
 
   private void registerReference( String id, IPentahoObjectRegistration handle ) {
     this.handleRegistry.get( id ).add( handle );
+  }
+
+  private void registerCloseable( Closeable closeable ) {
+    this.closeablesRegistry.add( closeable );
   }
 
   private ClassLoader createClassloader( IPlatformPlugin plugin ) throws PlatformPluginRegistrationException {
