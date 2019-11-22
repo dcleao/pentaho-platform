@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2019 Hitachi Vantara. All rights reserved.
  *
  */
 
@@ -170,4 +170,55 @@ public interface IPlatformPlugin extends IPluginLifecycleListener {
    * @return list of registered scripts
    */
   List<String> getExternalResourcesForContext( String context );
+
+  // region Facets
+
+  // This is implemented here, as default interface methods,
+  // and with a default in-memory facet store implementation,
+  // to be able to both preserve backward compatibility and
+  // to not have to compromise the desired usage and API shape.
+
+  /**
+   * Gets the value of the facet of a given type, if any, or {@code null}, if none.
+   *
+   * @param facetDataClass - The facet data class.
+   * @param <TFacetData> The facet data class.
+   * @return The facet data.
+   */
+  default <TFacetData> TFacetData getFacet( Class<TFacetData> facetDataClass ) {
+    return PlatformPluginFacetInMemoryStore.getInstance().get( this, facetDataClass );
+  }
+
+  /**
+   * Sets the value of the facet of a given type.
+   *
+   * @param facetDataClass - The facet data class.
+   * @param value - The facet data.
+   * @param <TFacetData> The facet data class.
+   */
+  default <TFacetData> void setFacet( Class<TFacetData> facetDataClass, TFacetData value ) {
+    PlatformPluginFacetInMemoryStore.getInstance().set( this, facetDataClass, value );
+  }
+
+  /**
+   * Clears the value of the facet of a given type.
+   *
+   * @param facetDataClass - The facet data class.
+   * @param <TFacetData> The facet data class.
+   */
+  default <TFacetData> void clearFacet( Class<TFacetData> facetDataClass ) {
+    PlatformPluginFacetInMemoryStore.getInstance().clear( this, facetDataClass );
+  }
+
+  /**
+   * Gets a value that indicates if there is non-{@code null} facet data of a given type.
+   *
+   * @param facetDataClass - The facet data class.
+   * @param <TFacetData> The facet data class.
+   * @return {@code true} if there is non-{@code null} facet data; {@code false}, otherwise.
+   */
+  default <TFacetData> boolean containsFacet( Class<TFacetData> facetDataClass ) {
+    return this.getFacet( facetDataClass ) != null;
+  }
+  // endregion
 }

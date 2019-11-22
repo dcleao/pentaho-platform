@@ -41,7 +41,6 @@ import org.pentaho.platform.api.engine.IPlatformPlugin;
 import org.pentaho.platform.api.engine.IPlatformPluginCsrfProtection;
 import org.pentaho.platform.api.engine.IPlatformPluginFacet;
 import org.pentaho.platform.api.engine.IPlatformPluginFacetLoader;
-import org.pentaho.platform.api.engine.IPlatformPluginFacetStore;
 import org.pentaho.platform.api.engine.IPluginLifecycleListener;
 import org.pentaho.platform.api.engine.IPluginManager;
 import org.pentaho.platform.api.engine.IPluginManagerListener;
@@ -337,15 +336,11 @@ public class PentahoSystemPluginManager implements IPluginManager {
       }
     }
 
-    IPlatformPluginFacetStore facetStore = PentahoSystem.get( IPlatformPluginFacetStore.class, null );
-    Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders = null;
-    if ( facetStore != null ) {
-      facetLoaders = getFacetsMap();
-    }
+    Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders = getFacetsMap();
 
     for ( IPlatformPlugin plugin : providedPlugins ) {
       try {
-        registerPlugin( plugin, facetStore, facetLoaders );
+        registerPlugin( plugin, facetLoaders );
       } catch ( Throwable t ) {
         // this has been logged already
         anyErrors = true;
@@ -379,7 +374,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
   @SuppressWarnings( "unchecked" )
   private void registerPlugin(
       final IPlatformPlugin plugin,
-      final IPlatformPluginFacetStore facetStore,
       final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders )
       throws PlatformPluginRegistrationException,
       PluginLifecycleException {
@@ -415,7 +409,7 @@ public class PentahoSystemPluginManager implements IPluginManager {
     // a service class may be configured as a plugin bean
     registerServices( plugin, loader, beanFactory );
 
-    registerFacets( plugin, facetStore, facetLoaders );
+    registerFacets( plugin, facetLoaders );
 
     if ( plugin instanceof IPlatformPluginCsrfProtection ) {
       registerCsrfProtection( plugin,  (IPlatformPluginCsrfProtection) plugin );
@@ -705,25 +699,21 @@ public class PentahoSystemPluginManager implements IPluginManager {
   private Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> getFacetsMap() {
     Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders = null;
 
-    IPlatformPluginFacetStore facetStore = PentahoSystem.get( IPlatformPluginFacetStore.class, null );
-    if ( facetStore != null ) {
+    List<IPlatformPluginFacet> facets = PentahoSystem.getAll( IPlatformPluginFacet.class, null );
+    if ( facets != null && facets.size() > 0 ) {
+      for ( IPlatformPluginFacet facet : facets ) {
+        Map<String, String> props = Collections.singletonMap(
+            IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
+            facet.getDataClass().getName() );
 
-      List<IPlatformPluginFacet> facets = PentahoSystem.getAll( IPlatformPluginFacet.class, null );
-      if ( facets != null && facets.size() > 0 ) {
-        for ( IPlatformPluginFacet facet : facets ) {
-          Map<String, String> props = Collections.singletonMap(
-              IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
-              facet.getDataClass().getName() );
-
-          IPlatformPluginFacetLoader loader = PentahoSystem.get( IPlatformPluginFacetLoader.class, null, props );
-          if ( loader != null ) {
-            // First existing reader assigns the fields.
-            if ( facetLoaders == null ) {
-              facetLoaders = new LinkedHashMap<>();
-            }
-
-            facetLoaders.put( facet, loader );
+        IPlatformPluginFacetLoader loader = PentahoSystem.get( IPlatformPluginFacetLoader.class, null, props );
+        if ( loader != null ) {
+          // First existing reader assigns the fields.
+          if ( facetLoaders == null ) {
+            facetLoaders = new LinkedHashMap<>();
           }
+
+          facetLoaders.put( facet, loader );
         }
       }
     }
@@ -733,25 +723,19 @@ public class PentahoSystemPluginManager implements IPluginManager {
 
   private void registerFacets(
       final IPlatformPlugin plugin,
-      final IPlatformPluginFacetStore facetStore,
       final Map<IPlatformPluginFacet, IPlatformPluginFacetLoader> facetLoaders ) {
 
-    if ( facetStore != null ) {
-      for (Map.Entry<IPlatformPluginFacet, IPlatformPluginFacetLoader> entry : facetLoaders.entrySet() ) {
-        registerFacet( plugin, facetStore, entry.getKey(), entry.getValue() );
-      }
+    if ( facetLoaders != null ) {
+      facetLoaders.forEach( ( facet, loader ) -> registerFacet( plugin, facet, loader ) );
     }
   }
 
   private void registerFacet(
       final IPlatformPlugin plugin,
-      final IPlatformPluginFacetStore facetStore,
       final IPlatformPluginFacet facet,
       final IPlatformPluginFacetLoader loader ) {
 
-    Class<Object> facetDataClass = facet.getDataClass();
-    Object facetData = facetStore.get( plugin, facetDataClass );
-    // There may be a Loader but no XmlReader, in which case `null` is received.
+    Object facetData = plugin.getFacet( facet.getDataClass() );
     if ( facetData != null ) {
       Closeable closeable = loader.load( plugin, facetData, PentahoSystem.getRegistrableObjectFactory() );
 

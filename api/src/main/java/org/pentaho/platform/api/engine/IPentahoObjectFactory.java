@@ -20,6 +20,8 @@
 
 package org.pentaho.platform.api.engine;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +67,27 @@ public interface IPentahoObjectFactory {
    * @throws ObjectFactoryException
    *           if the object cannot be retrieved
    */
-  public <T> T get( Class<T> interfaceClass, final IPentahoSession session ) throws ObjectFactoryException;
+  <T> T get( Class<T> interfaceClass, final IPentahoSession session ) throws ObjectFactoryException;
+
+  /**
+   * Retrieves an instance of a Pentaho BI Server API interface using the simple interface name (interfaceClass
+   * name without the package) as the object key. If an appropriate implementation does not exist the factory
+   * implementation should create it. If it is not possible to create it, {@code null} is returned.
+   *
+   * @param interfaceClass
+   *          the type of object to retrieve (retrieved object will be returned as this type)
+   * @param session
+   *          the Pentaho session object. Can be used to associate an object instance to a Pentaho session. Value
+   *          will be null if request to getObject does not originate in a session context.
+   * @return the implementation object typed to interfaceClass
+   */
+  default <T> T getOptional( Class<T> interfaceClass, IPentahoSession session ) {
+    try {
+      return this.get( interfaceClass, session );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
 
   /**
    * Retrieves an instance of a Pentaho BI Server API interface by the given object key. If an appropriate
@@ -84,7 +106,29 @@ public interface IPentahoObjectFactory {
    * 
    * @Deprecated use {@link IPentahoObjectFactory#get(Class, IPentahoSession)} instead}
    */
-  public <T> T get( Class<T> interfaceClass, String key, final IPentahoSession session ) throws ObjectFactoryException;
+  <T> T get( Class<T> interfaceClass, String key, final IPentahoSession session ) throws ObjectFactoryException;
+
+  /**
+   * Retrieves an instance of a Pentaho BI Server API interface by the given object key. If an appropriate
+   * implementation does not exist the factory implementation should create it. If it is not possible to create it,
+   * {@code null} is returned.
+   *
+   * @param interfaceClass
+   *          the type of object to retrieve (retrieved object will be returned as this type)
+   * @param key
+    *         the object identifier, typically the interface name
+   * @param session
+   *          the Pentaho session object. Can be used to associate an object instance to a Pentaho session. Value
+   *          will be null if request to getObject does not originate in a session context.
+   * @return the implementation object typed to interfaceClass
+   */
+  default <T> T getOptional( Class<T> interfaceClass, String key, IPentahoSession session ) {
+    try {
+      return this.get( interfaceClass, key, session );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
 
   /**
    * Retrieves an instance of a Pentaho BI Server API interface using the simple interface name (interfaceClass
@@ -103,8 +147,32 @@ public interface IPentahoObjectFactory {
    * @throws ObjectFactoryException
    *           if the object cannot be retrieved
    */
-  public <T> T get( Class<T> interfaceClass, final IPentahoSession session, Map<String, String> properties )
+  <T> T get( Class<T> interfaceClass, final IPentahoSession session, Map<String, String> properties )
     throws ObjectFactoryException;
+
+
+  /**
+   * Retrieves an instance of a Pentaho BI Server API interface using the simple interface name (interfaceClass
+   * name without the package) as the object key. If an appropriate implementation does not exist the factory
+   * implementation should create it. If it is not possible to create it, {@code null} is returned.
+   *
+   * @param interfaceClass
+   *          the type of object to retrieve (retrieved object will be returned as this type)
+   * @param session
+   *          the Pentaho session object. Can be used to associate an object instance to a Pentaho session. Value
+   *          will be null if request to getObject does not originate in a session context.
+   * @param properties
+   *          Map of properties to filter matches in the ObjectFactory by
+   *
+   * @return the implementation object typed to interfaceClass
+   */
+  default <T> T getOptional( Class<T> interfaceClass, IPentahoSession session, Map<String, String> properties ) {
+    try {
+      return this.get( interfaceClass, session, properties );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
 
   /**
    * Checks if the implementation for the given interface is defined.
@@ -113,7 +181,7 @@ public interface IPentahoObjectFactory {
    *          the object identifier, typically the interface name
    * @return true if the object is defined
    */
-  public boolean objectDefined( String key );
+  boolean objectDefined( String key );
 
   /**
    * Checks if the implementation for the given interface is defined.
@@ -122,7 +190,7 @@ public interface IPentahoObjectFactory {
    *          Interface or class literal to search for
    * @return true if the object is defined
    */
-  public boolean objectDefined( Class<?> clazz );
+  boolean objectDefined( Class<?> clazz );
 
   /**
    * Provides the concrete Class defined for the given object key.
@@ -133,7 +201,7 @@ public interface IPentahoObjectFactory {
    * @throws RuntimeException
    *           of some type indicating a problem loading or finding the implementing class
    */
-  public Class<?> getImplementingClass( String key );
+  Class<?> getImplementingClass( String key );
 
   /**
    * Initialize the factory with optional configuration file and runtime context. Calling this method should also
@@ -146,10 +214,9 @@ public interface IPentahoObjectFactory {
    *          varies depending on the framework used by the factory and the environment in which the application is
    *          running.
    */
-  public void init( String configFile, Object context );
+  void init( String configFile, Object context );
 
   /**
-   * 
    * Returns all objects implementing the provided interface or extending the provided class if the Class is not an
    * Interface.
    * 
@@ -165,13 +232,33 @@ public interface IPentahoObjectFactory {
   <T> List<T> getAll( Class<T> interfaceClass, IPentahoSession curSession ) throws ObjectFactoryException;
 
   /**
-   * 
+   * Returns all objects implementing the provided interface or extending the provided class if the Class is not an
+   * Interface.
+   *
+   * The returned list will be ordered by the optional "priority" property
+   *
+   * This method does not throw an exception if creation of instances fails. Instead, an empty list is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @return List of registered implementations
+   */
+  default <T> List<T> getAllOptional( Class<T> interfaceClass, IPentahoSession curSession ) {
+    try {
+      return this.getAll( interfaceClass, curSession );
+    } catch ( ObjectFactoryException e ) {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
    * Returns all objects implementing the provided interface or extending the provided class if the Class is not an
    * Interface.
    * 
    * The returned list will be ordered by the optional "priority" property
-   * 
-   * 
+   *
    * @param interfaceClass
    *          Interface or Class literal for which implementations of will be found
    * @param curSession
@@ -185,7 +272,34 @@ public interface IPentahoObjectFactory {
     throws ObjectFactoryException;
 
   /**
-   * Returns an IPentahoObjectReference for the requested Object containing registered Object Properties.
+   * Returns all objects implementing the provided interface or extending the provided class if the Class is not an
+   * Interface.
+   *
+   * The returned list will be ordered by the optional "priority" property
+   *
+   * This method does not throw an exception if creation of instances fails. Instead, an empty list is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @param properties
+    *         Map of properties to filter matches in the ObjectFactory by
+   * @return List of registered implementations
+   */
+  default <T> List<T> getAllOptional(
+      Class<T> interfaceClass,
+      IPentahoSession curSession,
+      Map<String, String> properties ) {
+    try {
+      return this.getAll( interfaceClass, curSession, properties );
+    } catch ( ObjectFactoryException e ) {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Returns an IPentahoObjectReference for the requested Object.
    * 
    * @param interfaceClass
    *          Interface or Class literal for which implementations of will be found
@@ -195,6 +309,29 @@ public interface IPentahoObjectFactory {
    */
   <T> IPentahoObjectReference<T> getObjectReference( Class<T> interfaceClass, IPentahoSession curSession )
     throws ObjectFactoryException;
+
+  /**
+   * Returns an IPentahoObjectReference for the requested Object.
+   *
+   * This method does not throw an exception when it is not possible to create an instance.
+   * Instead, {@code null} is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @return IPentahoObjectReference for the matching Object or null if no Object is found or
+   * there is an error creating one.
+   */
+  default <T> IPentahoObjectReference<T> getObjectReferenceOptional(
+      Class<T> interfaceClass,
+      IPentahoSession curSession ) {
+    try {
+      return this.getObjectReference( interfaceClass, curSession );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
 
   /**
    * Returns an IPentahoObjectReference for the requested Object containing registered Object Properties.
@@ -213,18 +350,66 @@ public interface IPentahoObjectFactory {
 
   /**
    * Returns an IPentahoObjectReference for the requested Object containing registered Object Properties.
+   *
+   * This method does not throw an exception when it is not possible to create an instance.
+   * Instead, {@code null} is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @param properties
+   *         Map of properties to filter matches in the ObjectFactory by
+   *
+   * @return IPentahoObjectReference for the matching Object or null if no Object is found or
+   * there is an error creating one.
+   */
+  default <T> IPentahoObjectReference<T> getObjectReferenceOptional(
+      Class<T> interfaceClass,
+      IPentahoSession curSession,
+      Map<String, String> properties ) {
+    try {
+      return this.getObjectReference( interfaceClass, curSession, properties );
+    } catch ( ObjectFactoryException e ) {
+      return null;
+    }
+  }
+
+  /**
+   * Returns a list of IPentahoObjectReference for the requested class.
    * 
    * @param interfaceClass
    *          Interface or Class literal for which implementations of will be found
    * @param curSession
    *          current session to be used for session-based implementations
-   * @return IPentahoObjectReference for the matching Object or null if no Object is found
+   * @return List of registered IPentahoObjectReference
    */
   <T> List<IPentahoObjectReference<T>> getObjectReferences( Class<T> interfaceClass, IPentahoSession curSession )
     throws ObjectFactoryException;
 
   /**
-   * Returns an IPentahoObjectReference for the requested Object containing registered Object Properties.
+   * Returns a list of IPentahoObjectReference for the requested class.
+   *
+   * This method does not throw an exception if creation of instances fails. Instead, an empty list is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @return List of registered IPentahoObjectReference
+   */
+  default <T> List<IPentahoObjectReference<T>> getObjectReferencesOptional(
+      Class<T> interfaceClass,
+      IPentahoSession curSession ) {
+    try {
+      return this.getObjectReferences( interfaceClass, curSession );
+    } catch ( ObjectFactoryException e ) {
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Returns a list of IPentahoObjectReference for the requested class containing registered Object Properties.
    * 
    * @param interfaceClass
    *          Interface or Class literal for which implementations of will be found
@@ -233,10 +418,35 @@ public interface IPentahoObjectFactory {
    * @param properties
    *          Map of properties to filter matches in the ObjectFactory by
    * 
-   * @return IPentahoObjectReference for the matching Object or null if no Object is found
+   * @return List of registered IPentahoObjectReference
    */
   <T> List<IPentahoObjectReference<T>> getObjectReferences( Class<T> interfaceClass, IPentahoSession curSession,
       Map<String, String> properties ) throws ObjectFactoryException;
+
+  /**
+   * Returns a list of IPentahoObjectReference for the requested class containing registered Object Properties.
+   *
+   * This method does not throw an exception if creation of instances fails. Instead, an empty list is returned.
+   *
+   * @param interfaceClass
+   *          Interface or Class literal for which implementations of will be found
+   * @param curSession
+   *          current session to be used for session-based implementations
+   * @param properties
+   *          Map of properties to filter matches in the ObjectFactory by
+   *
+   * @return List of registered IPentahoObjectReference
+   */
+  default <T> List<IPentahoObjectReference<T>> getObjectReferencesOptional(
+      Class<T> interfaceClass,
+      IPentahoSession curSession,
+      Map<String, String> properties ) {
+    try {
+      return this.getObjectReferences( interfaceClass, curSession, properties );
+    } catch ( ObjectFactoryException e ) {
+      return Collections.emptyList();
+    }
+  }
 
   /**
    * Return the name for this factory. Not assumed to be unique. Useful for logging only

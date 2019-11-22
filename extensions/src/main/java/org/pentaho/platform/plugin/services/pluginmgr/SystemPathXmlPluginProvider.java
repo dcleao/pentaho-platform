@@ -26,14 +26,11 @@ import org.dom4j.Element;
 import org.dom4j.Node;
 import org.pentaho.platform.api.engine.CsrfProtectionDefinition;
 import org.pentaho.platform.api.engine.IContentGeneratorInfo;
-import org.pentaho.platform.api.engine.IPentahoObjectFactory;
 import org.pentaho.platform.api.engine.IPentahoRegistrableObjectFactory;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPlatformPlugin;
 import org.pentaho.platform.api.engine.IPlatformPluginFacet;
-import org.pentaho.platform.api.engine.IPlatformPluginFacetStore;
 import org.pentaho.platform.api.engine.IPluginProvider;
-import org.pentaho.platform.api.engine.ObjectFactoryException;
 import org.pentaho.platform.api.engine.PlatformPluginRegistrationException;
 import org.pentaho.platform.api.engine.PluginBeanDefinition;
 import org.pentaho.platform.api.engine.PluginServiceDefinition;
@@ -71,7 +68,6 @@ import java.util.Map;
  */
 public class SystemPathXmlPluginProvider implements IPluginProvider {
 
-  private IPlatformPluginFacetStore facetStore = null;
   private Map<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> facetReaders = null;
 
   public SystemPathXmlPluginProvider() {
@@ -80,74 +76,29 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
 
   public SystemPathXmlPluginProvider( IPentahoRegistrableObjectFactory objectFactory, IPentahoSession session ) {
 
-    IPlatformPluginFacetStore facetStore = getOptional( objectFactory, IPlatformPluginFacetStore.class, session );
-    if ( facetStore != null ) {
+    List<IPlatformPluginFacet> facets = objectFactory.getAllOptional( IPlatformPluginFacet.class, session );
+    if ( facets != null && facets.size() > 0 ) {
+      for ( IPlatformPluginFacet facet : facets ) {
+        Map<String, String> props = Collections.singletonMap(
+            IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
+            facet.getDataClass().getName() );
 
-      List<IPlatformPluginFacet> facets = getAllOptional( objectFactory, IPlatformPluginFacet.class, session );
-      if ( facets != null && facets.size() > 0 ) {
-        for ( IPlatformPluginFacet facet : facets ) {
-          Map<String, String> props = Collections.singletonMap(
-              IPlatformPluginFacet.SERVICE_PROPERTY_FACET_ID,
-              facet.getDataClass().getName() );
+        IPlatformPluginFacetXmlReader reader = objectFactory.getOptional(
+            IPlatformPluginFacetXmlReader.class,
+            session,
+            props );
 
-          IPlatformPluginFacetXmlReader reader = getOptional(
-              objectFactory,
-              IPlatformPluginFacetXmlReader.class,
-              session,
-              props );
-
-          if ( reader != null ) {
-            // First existing reader assigns the fields.
-            if ( this.facetStore == null ) {
-              this.facetStore = facetStore;
-              this.facetReaders = new LinkedHashMap<>();
-            }
-
-            facetReaders.put( facet, reader );
+        if ( reader != null ) {
+          // First existing reader creates the map.
+          if ( this.facetReaders == null ) {
+            this.facetReaders = new LinkedHashMap<>();
           }
+
+          facetReaders.put( facet, reader );
         }
       }
     }
   }
-
-  // region Object Factory Helpers
-  private static <T> T getOptional(
-      IPentahoObjectFactory objectFactory,
-      Class<T> interfaceClass,
-      IPentahoSession session ) {
-
-    try {
-      return objectFactory.get( interfaceClass, session );
-    } catch ( ObjectFactoryException e ) {
-      return null;
-    }
-  }
-
-  private static <T> T getOptional(
-      IPentahoObjectFactory objectFactory,
-      Class<T> interfaceClass,
-      IPentahoSession session,
-      Map<String, String> props) {
-
-    try {
-      return objectFactory.get( interfaceClass, session, props );
-    } catch ( ObjectFactoryException e ) {
-      return null;
-    }
-  }
-
-  private static <T> List<T> getAllOptional(
-      IPentahoObjectFactory objectFactory,
-      Class<T> interfaceClass,
-      IPentahoSession session ) {
-
-    try {
-      return objectFactory.getAll( interfaceClass, session );
-    } catch ( ObjectFactoryException e ) {
-      return null;
-    }
-  }
-  // endregion
 
   /**
    * Gets the list of plugins that this provider class has discovered.
@@ -562,7 +513,7 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
 
   protected void processFacets( PlatformPlugin plugin, Document doc ) {
 
-    if ( facetStore != null ) {
+    if ( facetReaders != null ) {
       Element pluginDefinition = (Element) doc.selectSingleNode( "//plugin" );
 
       for (Map.Entry<IPlatformPluginFacet, IPlatformPluginFacetXmlReader> entry : facetReaders.entrySet() ) {
@@ -579,7 +530,7 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
 
     Class<Object> facetDataClass = facet.getDataClass();
     Object facetData = reader.read( pluginDefinition );
-    if ( facetData == null || !facetDataClass.isAssignableFrom( facetData.getClass() ) ) {
+    if ( facetData != null && !facetDataClass.isAssignableFrom( facetData.getClass() ) ) {
       // Log and ignore.
       PluginMessageLogger.add(
           Messages.getInstance().getString(
@@ -589,6 +540,6 @@ public class SystemPathXmlPluginProvider implements IPluginProvider {
       return;
     }
 
-    facetStore.set( plugin, facetDataClass, facetData );
+    plugin.setFacet( facetDataClass, facetData );
   }
 }
