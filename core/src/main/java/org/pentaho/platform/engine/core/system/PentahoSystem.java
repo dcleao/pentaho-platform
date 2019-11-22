@@ -70,8 +70,6 @@ import org.pentaho.platform.engine.core.messages.Messages;
 import org.pentaho.platform.engine.core.output.SimpleOutputHandler;
 import org.pentaho.platform.engine.core.solution.PentahoSessionParameterProvider;
 import org.pentaho.platform.engine.core.solution.SimpleParameterProvider;
-import org.pentaho.platform.engine.core.system.objfac.AggregateObjectFactory;
-import org.pentaho.platform.engine.core.system.objfac.OSGIRuntimeObjectFactory;
 import org.pentaho.platform.engine.security.SecurityHelper;
 import org.pentaho.platform.util.logging.Logger;
 import org.pentaho.platform.util.messages.LocaleHelper;
@@ -135,8 +133,6 @@ public class PentahoSystem {
   public static final String CORS_REQUESTS_ALLOWED = "cors-requests-allowed";
 
   public static final String CORS_REQUESTS_ALLOWED_DOMAINS = "cors-requests-allowed-domains";
-
-  public static final String CSRF_PROTECTION_ENABLED = "csrf-protection-enabled";
 
   private static Map globalAttributes;
 
@@ -1171,12 +1167,6 @@ public class PentahoSystem {
       cacheManager.removeFromGlobalCache( WAIT_SECONDS );
     }
   }
-
-  // region Specific System Settings
-  public static boolean isCsrfProtectionEnabled() {
-    return Boolean.valueOf( PentahoSystem.getSystemSetting( CSRF_PROTECTION_ENABLED, "false" ) );
-  }
-  // endregion
 
   // TODO: shouldn't this be called execute or something like that?
   public static String publish( final IPentahoSession session, final String className ) {

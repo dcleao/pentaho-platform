@@ -25,7 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
-import org.pentaho.platform.api.engine.CsrfProtectionDefinition;
 import org.pentaho.platform.api.engine.IConfiguration;
 import org.pentaho.platform.api.engine.IContentGenerator;
 import org.pentaho.platform.api.engine.IContentGeneratorInfo;
@@ -38,7 +37,6 @@ import org.pentaho.platform.api.engine.IPentahoObjectRegistration;
 import org.pentaho.platform.api.engine.IPentahoRegistrableObjectFactory;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.engine.IPlatformPlugin;
-import org.pentaho.platform.api.engine.IPlatformPluginCsrfProtection;
 import org.pentaho.platform.api.engine.IPlatformPluginFacet;
 import org.pentaho.platform.api.engine.IPlatformPluginFacetLoader;
 import org.pentaho.platform.api.engine.IPluginLifecycleListener;
@@ -412,10 +410,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
 
     registerFacets( plugin, facetLoaders );
 
-    if ( plugin instanceof IPlatformPluginCsrfProtection ) {
-      registerCsrfProtection( plugin,  (IPlatformPluginCsrfProtection) plugin );
-    }
-
     PluginMessageLogger
         .add( Messages.getInstance().getString( "PluginManager.PLUGIN_REGISTERED", plugin.getId() ) );
     try {
@@ -669,31 +663,6 @@ public class PentahoSystemPluginManager implements IPluginManager {
       );
 
       registerReference( plugin.getId(), handle );
-    }
-  }
-
-  public boolean isCsrfProtectionEnabled( String pluginId ) {
-    return PentahoSystem.isCsrfProtectionEnabled()
-        && "true".equals( this.getPluginSetting( pluginId, "csrf-protection-enabled", "true" ) );
-  }
-
-  private void registerCsrfProtection( IPlatformPlugin plugin, IPlatformPluginCsrfProtection pluginCsrfProtection ) {
-
-    if ( this.isCsrfProtectionEnabled( plugin.getId() ) ) {
-
-      CsrfProtectionDefinition csrfProtectionDefinition = pluginCsrfProtection.getCsrfProtection();
-      if ( csrfProtectionDefinition != null ) {
-
-        IPentahoObjectRegistration handle = PentahoSystem.registerReference(
-            new SingletonPentahoObjectReference.Builder<CsrfProtectionDefinition>( CsrfProtectionDefinition.class )
-                .object( csrfProtectionDefinition )
-                .attributes( Collections.<String, Object>singletonMap( PLUGIN_ID, plugin.getId() ) )
-                .build(),
-            CsrfProtectionDefinition.class
-        );
-
-        registerReference( plugin.getId(), handle );
-      }
     }
   }
 
