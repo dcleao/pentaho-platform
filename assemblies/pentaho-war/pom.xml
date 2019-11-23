@@ -126,6 +126,18 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-pentaho-server-impl</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-server-filters</artifactId>
+      <version>${project.version}</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>commons-database-model</artifactId>
       <version>${commons-database.version}</version>

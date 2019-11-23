@@ -115,13 +115,37 @@
 
   <!-- ======================== CSRF PROTECTION ======================== -->
 
-  <bean id="csrfTokenResponseHeaderFilter" class="org.pentaho.platform.web.http.security.CsrfTokenResponseHeaderFilter"/>
-
-  <bean id="csrfTokenSecurityFilter" class="org.pentaho.platform.web.http.security.CsrfGateFilter">
-    <constructor-arg ref="csrfTokenRepository"/>
+  <bean id="csrfTokenSecurityFilter" class="org.pentaho.csrf.filter.CsrfGateFilter">
+    <constructor-arg ref="csrfTokenRepository" />
+    <constructor-arg ref="csrfPentahoProtection" />
   </bean>
 
-  <bean id="csrfTokenRepository" class="org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository"/>
+  <bean id="csrfTokenResponseHeaderFilter" class="org.pentaho.csrf.filter.CsrfTokenResponseHeaderFilter" />
+
+  <bean id="csrfTokenRepository" class="org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository" />
+
+  <bean id="csrfPentahoProtection" class="org.pentaho.csrf.pentaho.impl.PentahoCsrfProtection" />
+
+  <bean class="org.pentaho.csrf.pentaho.impl.CsrfPlatformPluginFacet">
+    <pen:publish as-type="INTERFACES" />
+  </bean>
+
+  <bean class="org.pentaho.csrf.pentaho.impl.CsrfPlatformPluginFacetXmlReader">
+    <pen:publish as-type="INTERFACES">
+      <pen:attributes>
+        <pen:attr key="facet-id" value="org.pentaho.csrf.CsrfProtectionDefinition" />
+      </pen:attributes>
+    </pen:publish>
+  </bean>
+
+  <bean class="org.pentaho.csrf.pentaho.impl.CsrfPlatformPluginFacetLoader">
+    <constructor-arg ref="csrfPentahoProtection" />
+    <pen:publish as-type="INTERFACES">
+      <pen:attributes>
+        <pen:attr key="facet-id" value="org.pentaho.csrf.CsrfProtectionDefinition" />
+      </pen:attributes>
+    </pen:publish>
+  </bean>
 
   <!-- ======================== AUTHENTICATION ======================= -->
 
