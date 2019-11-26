@@ -30,6 +30,8 @@ import java.io.OutputStream;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
@@ -51,10 +53,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.pentaho.csrf.client.ICsrfClient;
+import org.pentaho.csrf.client.ICsrfToken;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
 import org.pentaho.platform.api.repository2.unified.IUnifiedRepository;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.plugin.services.messages.Messages;
 import org.pentaho.platform.repository.RepositoryFilenameUtils;
 import org.pentaho.platform.repository2.unified.webservices.jaxws.IUnifiedRepositoryJaxwsWebService;
@@ -73,15 +78,15 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataMultiPart;
 import com.sun.xml.ws.developer.JAXWSProperties;
-import org.pentaho.platform.web.http.security.CsrfToken;
-import org.pentaho.platform.web.http.security.CsrfUtil;
 
 /**
  * Handles the parsing of command line arguments and creates an import process based upon them
- * 
+ *
  * @author <a href="mailto:dkincade@pentaho.com">David M. Kincade</a>
  */
 public class CommandLineProcessor implements Closeable {
+  private static final String API_SYSTEM_CSRF = "/api/system/csrf";
+
   private static final String API_REPO_FILES_IMPORT = "/api/repo/files/import";
 
   private static final String ANALYSIS_DATASOURCE_IMPORT = "/plugin/data-access/api/mondrian/postAnalysis";
@@ -267,7 +272,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * How this class is executed from the command line.
-   * 
+   *
    * @param args
    */
   public static void main( String[] args ) throws Exception {
@@ -314,7 +319,7 @@ public class CommandLineProcessor implements Closeable {
   /**
    * call FileResource REST service example: {path+}/children example: {path+}/parameterizable example:
    * {path+}/properties example: /delete?params={fileid1, fileid2}
-   * 
+   *
    * @throws ParseException
    */
   private void performREST() throws ParseException, InitializationException, KettleException {
@@ -373,7 +378,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * Used only for REST Jersey calls
-   * 
+   *
    * @throws ParseException
    */
   private void initRestService() throws ParseException, InitializationException, KettleException {
@@ -391,7 +396,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * Returns information about any exception encountered (if one was generated)
-   * 
+   *
    * @return the {@link Exception} that was generated, or {@code null} if none was generated
    */
   public static Exception getException() {
@@ -400,7 +405,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * Parses the command line and handles the situation where it isn't a valid import or export or rest request
-   * 
+   *
    * @param args
    *          the command line arguments
    * @throws ParseException
@@ -451,7 +456,7 @@ public class CommandLineProcessor implements Closeable {
   /**
    * --import --url=http://localhost:8080/pentaho --username=admin --password=password --file-path=metadata.xmi
    * --resource-type=DATASOURCE --datasource-type=METADATA --overwrite=true --metadata-domain-id=steel-wheels
-   * 
+   *
    * @param contextURL
    * @param metadataDatasourceFile
    * @param overwrite
@@ -548,7 +553,7 @@ public class CommandLineProcessor implements Closeable {
    * --import --url=http://localhost:8080/pentaho --username=admin --password=password
    * --file-path=analysis/steelwheels.mondrian.xml --resource-type=DATASOURCE --datasource-type=ANALYSIS
    * --overwrite=true --analysis-datasource=steelwheels
-   * 
+   *
    * @param contextURL
    * @param analysisDatasourceFile
    * @param overwrite
@@ -560,7 +565,7 @@ public class CommandLineProcessor implements Closeable {
     throws ParseException, IOException {
     String analysisImportURL = contextURL + ANALYSIS_DATASOURCE_IMPORT;
 
-    CsrfToken csrfToken = CsrfUtil.getCsrfToken( client, contextURL, analysisImportURL );
+    ICsrfToken csrfToken = getCsrfToken( contextURL, analysisImportURL );
 
     String catalogName = getOptionValue( INFO_OPTION_ANALYSIS_CATALOG_NAME, false, true );
     String datasourceName = getOptionValue( INFO_OPTION_ANALYSIS_DATASOURCE_NAME, false, true );
@@ -666,7 +671,7 @@ public class CommandLineProcessor implements Closeable {
       try {
         initRestService();
 
-        CsrfToken csrfToken = CsrfUtil.getCsrfToken( client, contextURL, importURL );
+        ICsrfToken csrfToken = getCsrfToken( contextURL, importURL );
 
         WebResource resource = client.resource( importURL );
 
@@ -839,7 +844,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * REST Service Export
-   * 
+   *
    * @throws ParseException
    *           --export --url=http://localhost:8080/pentaho --username=admin --password=password
    *           --file-path=c:/temp/export.zip --charset=UTF-8 --path=public/pentaho-solutions/steel-wheels
@@ -933,7 +938,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * create the zip file from the input stream
-   * 
+   *
    * @param filename
    * @param input
    *          InputStream
@@ -1020,7 +1025,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * Returns the option value from the command line
-   * 
+   *
    * @param option
    *          the option whose value should be returned (NOTE: {@code null} will be returned if the option was not
    *          provided)
@@ -1052,7 +1057,7 @@ public class CommandLineProcessor implements Closeable {
 
   /**
    * internal helper to write output file
-   * 
+   *
    * @param message
    * @param logFile
    */
@@ -1076,5 +1081,20 @@ public class CommandLineProcessor implements Closeable {
     formatter.printHelp( Messages.getInstance().getString( "CommandLineProcessor.INFO_PRINTHELP_CMDLINE" ), Messages
         .getInstance().getString( "CommandLineProcessor.INFO_PRINTHELP_HEADER" ), options, Messages.getInstance()
             .getString( "CommandLineProcessor.INFO_PRINTHELP_FOOTER" ) );
+  }
+
+  private ICsrfClient getCsrfClient() {
+    return PentahoSystem.get( ICsrfClient.class );
+  }
+
+  private ICsrfToken getCsrfToken( String contextURL, String protectedService ) {
+    try {
+      final URI csrfServiceUri = new URI( contextURL + API_SYSTEM_CSRF );
+      final URI protectedServiceUri = new URI( protectedService );
+
+      return getCsrfClient().getToken( csrfServiceUri, defaultCookieHandler, protectedServiceUri );
+    } catch ( URISyntaxException ex) {
+      return null;
+    }
   }
 }

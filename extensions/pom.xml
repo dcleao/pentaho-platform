@@ -2,14 +2,16 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>pentaho</groupId>
     <artifactId>pentaho-platform-ce-parent</artifactId>
     <version>9.0.0.0-SNAPSHOT</version>
   </parent>
-  <groupId>pentaho</groupId>
+
   <artifactId>pentaho-platform-extensions</artifactId>
   <version>9.0.0.0-SNAPSHOT</version>
+
   <properties>
     <asm-attrs.version>2.2.3</asm-attrs.version>
     <license.header.file>${basedir}/../license/templates/LGPL-2.1.txt</license.header.file>
@@ -30,6 +32,7 @@
     <pentaho-metadata.version>9.0.0.0-SNAPSHOT</pentaho-metadata.version>
     <pentaho-chartbeans.version>9.0.0.0-SNAPSHOT</pentaho-chartbeans.version>
   </properties>
+
   <dependencies>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -791,7 +794,7 @@
         </exclusion>
       </exclusions>
     </dependency>
-    
+
     <dependency>
       <groupId>com.sun.jersey.contribs</groupId>
       <artifactId>jersey-spring</artifactId>
@@ -2762,7 +2765,14 @@
       <version>${websocket-api.version}</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- CSRF -->
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-client-api</artifactId>
+    </dependency>
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
