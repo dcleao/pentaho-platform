@@ -1093,7 +1093,7 @@ public class CommandLineProcessor implements Closeable {
       final URI csrfServiceUri = new URI( contextURL + IPentahoCsrfService.SERVICE_URL );
       final URI protectedServiceUri = new URI( protectedService );
 
-      return getCsrfClient().getToken( csrfServiceUri, defaultCookieHandler, protectedServiceUri );
+      return getCsrfClient().getToken( csrfServiceUri, CookieHandler.getDefault(), protectedServiceUri );
     } catch ( URISyntaxException ex) {
       return null;
     }
