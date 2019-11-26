@@ -55,6 +55,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pentaho.csrf.client.ICsrfClient;
 import org.pentaho.csrf.client.ICsrfToken;
+import org.pentaho.csrf.pentaho.IPentahoCsrfService;
 import org.pentaho.di.core.KettleClientEnvironment;
 import org.pentaho.di.core.encryption.Encr;
 import org.pentaho.di.core.exception.KettleException;
@@ -1089,7 +1090,7 @@ public class CommandLineProcessor implements Closeable {
 
   private ICsrfToken getCsrfToken( String contextURL, String protectedService ) {
     try {
-      final URI csrfServiceUri = new URI( contextURL + API_SYSTEM_CSRF );
+      final URI csrfServiceUri = new URI( contextURL + IPentahoCsrfService.SERVICE_URL );
       final URI protectedServiceUri = new URI( protectedService );
 
       return getCsrfClient().getToken( csrfServiceUri, defaultCookieHandler, protectedServiceUri );

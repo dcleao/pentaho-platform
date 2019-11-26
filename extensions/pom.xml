@@ -2771,6 +2771,11 @@
       <groupId>org.pentaho.csrf</groupId>
       <artifactId>csrf-client-api</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-pentaho-server-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
