@@ -16,7 +16,7 @@
  */
 
 define([
-  "pentaho/csrf/service"
+  "common-ui/util/pentaho-csrf"
 ], function(csrfService) {
 
   var local = {

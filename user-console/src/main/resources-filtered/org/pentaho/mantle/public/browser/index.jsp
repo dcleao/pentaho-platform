@@ -85,7 +85,7 @@
   var FileBrowser = null;
 
   function initBrowser(canDownload, showHiddenFiles, showDescriptions, canPublish, canRead, canCreate) {
-    require(["mantle/browser/browser", "pentaho/csrf/service"], function (pentahoFileBrowser, csrfService) {
+    require(["mantle/browser/browser", "common-ui/util/pentaho-csrf"], function (pentahoFileBrowser, csrfService) {
       FileBrowser = pentahoFileBrowser;
       FileBrowser.setOpenFileHandler(openRepositoryFile);
       FileBrowser.setContainer($("#fileBrowser"));

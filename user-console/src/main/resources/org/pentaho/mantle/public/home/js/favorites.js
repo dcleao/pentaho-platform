@@ -18,7 +18,7 @@
 define([
   "common-ui/util/PentahoSpinner",
   "common-ui/util/spin",
-  "pentaho/csrf/service",
+  "common-ui/util/pentaho-csrf",
   "pentaho/shim/css.escape"
 ], function(spinner, Spinner, csrfService) {
 
