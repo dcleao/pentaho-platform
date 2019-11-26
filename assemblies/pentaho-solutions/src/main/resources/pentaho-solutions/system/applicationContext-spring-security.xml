@@ -130,6 +130,10 @@
     <pen:publish as-type="INTERFACES" />
   </bean>
 
+  <bean class="org.pentaho.csrf.client.impl.CsrfClient">
+    <pen:publish as-type="INTERFACES" />
+  </bean>
+
   <bean class="org.pentaho.csrf.pentaho.impl.CsrfPlatformPluginFacetXmlReader">
     <pen:publish as-type="INTERFACES">
       <pen:attributes>

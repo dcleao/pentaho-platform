@@ -246,6 +246,62 @@
           </exclusion>
         </exclusions>
       </dependency>
+      <dependency>
+        <groupId>org.pentaho.csrf</groupId>
+        <artifactId>csrf-server-api</artifactId>
+        <version>${project.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.pentaho.csrf</groupId>
+        <artifactId>csrf-pentaho-server-api</artifactId>
+        <version>${project.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>org.pentaho.csrf</groupId>
+        <artifactId>csrf-server-filters</artifactId>
+        <version>${project.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.pentaho.csrf</groupId>
+        <artifactId>csrf-client-impl</artifactId>
+        <version>${project.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.pentaho.csrf</groupId>
+        <artifactId>csrf-pentaho-server-impl</artifactId>
+        <version>${project.version}</version>
+        <exclusions>
+          <exclusion>
+            <artifactId>*</artifactId>
+            <groupId>*</groupId>
+          </exclusion>
+        </exclusions>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

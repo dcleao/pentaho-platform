@@ -125,18 +125,34 @@
         </exclusion>
       </exclusions>
     </dependency>
+
+    <!-- region CSRF -->
     <dependency>
       <groupId>org.pentaho.csrf</groupId>
-      <artifactId>csrf-pentaho-server-impl</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
+      <artifactId>csrf-client-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-server-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-pentaho-server-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-client-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>org.pentaho.csrf</groupId>
       <artifactId>csrf-server-filters</artifactId>
-      <version>${project.version}</version>
-      <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.pentaho.csrf</groupId>
+      <artifactId>csrf-pentaho-server-impl</artifactId>
+    </dependency>
+    <!-- endregion -->
+
     <dependency>
       <groupId>org.pentaho</groupId>
       <artifactId>commons-database-model</artifactId>
