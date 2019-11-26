@@ -166,4 +166,5 @@
 
   <bean class="org.pentaho.platform.web.http.api.resources.PasswordResource" scope="request"/>
   <bean class="org.pentaho.platform.web.http.api.resources.ServiceResource" scope="request"/>
+  <bean class="org.pentaho.csrf.filter.CsrfTokenResource" scope="request"/>
 </beans>
