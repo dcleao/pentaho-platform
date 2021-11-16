@@ -513,9 +513,24 @@
   </servlet-mapping>
 
   <!-- insert additional servlet mappings -->
+
   <session-config>
     <tracking-mode>COOKIE</tracking-mode>
     <session-timeout>120</session-timeout>
+
+    <cookie-config>
+      <!-- Disallow generated cookies to be read by JavaScript code, via `document.cookie`. -->
+      <http-only>true</http-only>
+
+      <!-- Requires a secure connection to transmit generated cookies.
+
+           Cross-Origin/Embedding use requires secure connections.
+
+           For more information regarding the configuration of the Pentaho Server for Cross-Origin/Embedding operation,
+           see the CORS section of `pentaho-solutions/system/system.properties`.
+        -->
+      <secure>true</secure>
+    </cookie-config>
   </session-config>
 
   <mime-mapping>

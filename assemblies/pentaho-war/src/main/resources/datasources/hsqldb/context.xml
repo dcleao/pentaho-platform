@@ -19,4 +19,14 @@
 		driverClassName="org.hsqldb.jdbcDriver" url="jdbc:hsqldb:hsql://localhost/jackrabbit"
 		validationQuery="select 1"/>
 
+	<!--
+        To enable Cross-Origin/Embedding use, set `sameSiteCookies` to `None`.
+        To disable, use `Strict`.
+
+        For more information regarding the configuration of the Pentaho Server for Cross-Origin/Embedding operation,
+        see the CORS section of `pentaho-solutions/system/system.properties`.
+      -->
+	<CookieProcessor sameSiteCookies="Strict"
+									 className="org.apache.tomcat.util.http.LegacyCookieProcessor" />
+
 </Context>
