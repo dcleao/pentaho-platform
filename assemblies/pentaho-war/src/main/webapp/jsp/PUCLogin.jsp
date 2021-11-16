@@ -343,9 +343,20 @@
     var userState = '';
     <% } %>
 
+    var doLoginUrl = FULL_QUALIFIED_URL + "j_spring_security_check";
+
+    var headers = {};
+
+    var csrfToken = pho.csrfUtil.getToken(doLoginUrl);
+    // Add the CSRF token, if needed.
+    if (csrfToken !== null) {
+      headers[csrfToken.header] = csrfToken.token;
+    }
+
     jQuery.ajax({
       type: "POST",
-      url: "j_spring_security_check",
+      url: doLoginUrl,
+      headers: headers,
       dataType: "text",
       data: $("#login").serialize(),
 

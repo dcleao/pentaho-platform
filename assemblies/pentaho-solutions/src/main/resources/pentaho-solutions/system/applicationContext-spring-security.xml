@@ -23,8 +23,7 @@
     <constructor-arg>
       <util:list>
         <sec:filter-chain pattern="/api/csrf/token"
-                          filters="csrfGateFilter,
-                                   corsFilter" />
+                          filters="corsFilter" />
 
         <sec:filter-chain pattern="/webservices/**"
                           filters="csrfGateFilter,

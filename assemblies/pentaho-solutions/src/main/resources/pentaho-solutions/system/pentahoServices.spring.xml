@@ -171,6 +171,9 @@
     <constructor-arg>
       <pen:bean class="com.hitachivantara.security.web.model.csrf.CsrfConfiguration"/>
     </constructor-arg>
+    <constructor-arg>
+      <pen:bean class="org.springframework.security.web.csrf.CsrfTokenRepository"/>
+    </constructor-arg>
   </bean>
 
 </beans>
