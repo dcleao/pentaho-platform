@@ -14,13 +14,15 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2021 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.servlet;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.hitachivantara.security.web.impl.service.jaxrsv1.csrf.spring.CsrfProtectedSpringServlet;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import com.sun.jersey.api.container.ContainerException;
 import com.sun.jersey.api.container.MappableContainerException;
 import com.sun.jersey.api.core.ResourceConfig;
@@ -35,7 +37,8 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 import com.sun.jersey.spi.container.servlet.WebComponent;
 import com.sun.jersey.spi.container.servlet.WebConfig;
 import com.sun.jersey.spi.container.servlet.WebServletConfig;
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
@@ -81,7 +84,7 @@ import java.util.Map;
  *
  * @author Aaron Phillips
  */
-public class JAXRSServlet extends SpringServlet {
+public class JAXRSServlet extends CsrfProtectedSpringServlet {
 
   private static final long serialVersionUID = 457538570048660945L;
 
@@ -92,6 +95,18 @@ public class JAXRSServlet extends SpringServlet {
   public static final String ACCEPT = "accept";
   public static final String GET = "GET";
   protected boolean SendEmptyEntityForServicesFlag;
+
+  public JAXRSServlet() {
+    this( null );
+  }
+
+  public JAXRSServlet( @Nullable CsrfValidator csrfValidator ) {
+    super( defaultCsrfValidator( csrfValidator ) );
+  }
+
+  private static CsrfValidator defaultCsrfValidator( @Nullable CsrfValidator csrfValidator ) {
+    return csrfValidator != null ? csrfValidator : PentahoSystem.get( CsrfValidator.class );
+  }
 
   @Override
   protected ConfigurableApplicationContext getContext() {
@@ -109,34 +124,45 @@ public class JAXRSServlet extends SpringServlet {
       // Extension to allow accept type override from mime-type query param
       final String mimeType = request.getParameter( MIME_TYPE );
       if ( mimeType != null ) {
-        final HttpServletRequest originalRequest = request;
-
-        request =
-          (HttpServletRequest) Proxy.newProxyInstance( getClass().getClassLoader(),
-            new Class[] { HttpServletRequest.class }, new InvocationHandler() {
-              public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
-                if ( method.getName().equals( GET_HEADERS ) && args.length > 0 && args[ 0 ].equals( ACCEPT ) ) {
-                  return new Enumeration() {
-                    boolean hasMore = true;
-
-                    @Override
-                    public boolean hasMoreElements() {
-                      return hasMore;
-                    }
-
-                    @Override
-                    public Object nextElement() {
-                      hasMore = false;
-                      return mimeType;
-                    }
-                  };
-                }
-                return method.invoke( originalRequest, args );
-              }
-            } );
+        request = wrapRequestGetHeadersAccept( request, mimeType );
       }
     }
+
     super.service( request, response );
+  }
+
+  @NonNull
+  private HttpServletRequest wrapRequestGetHeadersAccept( @NonNull HttpServletRequest request,
+                                                          @NonNull String mimeType ) {
+    return (HttpServletRequest) Proxy.newProxyInstance( getClass().getClassLoader(),
+      new Class[] { HttpServletRequest.class },
+      new InvocationHandler() {
+        public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
+          if ( method.getName().equals( GET_HEADERS ) && args.length > 0 && args[ 0 ].equals( ACCEPT ) ) {
+            return getSingletonEnumeration( mimeType );
+          }
+
+          return method.invoke( request, args );
+        }
+      } );
+  }
+
+  @NonNull
+  private <T> Enumeration<T> getSingletonEnumeration( T element ) {
+    return new Enumeration<T>() {
+      boolean hasMore = true;
+
+      @Override
+      public boolean hasMoreElements() {
+        return hasMore;
+      }
+
+      @Override
+      public T nextElement() {
+        hasMore = false;
+        return element;
+      }
+    };
   }
 
   @Override
@@ -154,7 +180,8 @@ public class JAXRSServlet extends SpringServlet {
     callSuperInitiate( rc, wa );
     if ( logger.isDebugEnabled() ) {
       MessageBodyWorkers messageBodyWorkers = wa.getMessageBodyWorkers();
-      Map<MediaType, List<MessageBodyWriter>> writers = messageBodyWorkers == null ? null
+      Map<MediaType, List<MessageBodyWriter>> writers = messageBodyWorkers == null
+        ? null
         : messageBodyWorkers.getWriters( MediaType.WILDCARD_TYPE );
       logger.debug( "Writers: " + writers ); //$NON-NLS-1$
     }
@@ -181,14 +208,16 @@ public class JAXRSServlet extends SpringServlet {
     String springFile =
       PentahoSystem.getApplicationContext()
         .getSolutionPath( "system" + File.separator + "pentahoServices.spring.xml" ); //$NON-NLS-1$ //$NON-NLS-2$
-    wac.setConfigLocations( new String[] { springFile } );
+    wac.setConfigLocations( springFile );
+
     wac.addBeanFactoryPostProcessor( new PentahoBeanScopeValidatorPostProcessor() );
     wac.refresh();
 
     return wac;
   }
 
-  @Override public void init() throws ServletException {
+  @Override
+  public void init() throws ServletException {
     SendEmptyEntityForServicesFlag =
       Boolean.parseBoolean( PentahoSystem.getSystemSetting( "pentaho.xml", "set-empty-entity-rest-services", "true" ) );
     Application app = (Application) getPrivate( "app", ServletContainer.class, this );
@@ -201,7 +230,6 @@ public class JAXRSServlet extends SpringServlet {
     setPrivate( "webComponent", ServletContainer.class, this, component, false );
     WebServletConfig webConfig = createWebConfig( this );
     component.init( webConfig );
-
   }
 
   @VisibleForTesting

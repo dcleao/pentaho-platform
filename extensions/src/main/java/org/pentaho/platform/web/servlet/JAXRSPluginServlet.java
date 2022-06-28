@@ -14,19 +14,23 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2021 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.servlet;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.hitachivantara.security.web.impl.service.jaxrsv1.csrf.spring.CsrfProtectedSpringServlet;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.spi.container.WebApplication;
 import com.sun.jersey.spi.container.servlet.WebConfig;
-import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
+import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -50,7 +54,7 @@ import java.util.regex.Pattern;
  *
  * @author Aaron Phillips
  */
-public class JAXRSPluginServlet extends SpringServlet implements ApplicationContextAware {
+public class JAXRSPluginServlet extends CsrfProtectedSpringServlet implements ApplicationContextAware {
 
   private static final long serialVersionUID = 457538570048660945L;
   private static final String APPLICATION_WADL = "application.wadl";
@@ -64,9 +68,21 @@ public class JAXRSPluginServlet extends SpringServlet implements ApplicationCont
 
   private ApplicationContext applicationContext;
 
-  public static final ThreadLocal requestThread = new ThreadLocal();
+  public static final ThreadLocal<String> requestThread = new ThreadLocal<>();
 
   private static final Log logger = LogFactory.getLog( JAXRSPluginServlet.class );
+
+  public JAXRSPluginServlet() {
+    this( null );
+  }
+
+  public JAXRSPluginServlet( @Nullable CsrfValidator csrfValidator ) {
+    super( defaultCsrfValidator( csrfValidator ) );
+  }
+
+  private static CsrfValidator defaultCsrfValidator( @Nullable CsrfValidator csrfValidator ) {
+    return csrfValidator != null ? csrfValidator : PentahoSystem.get( CsrfValidator.class );
+  }
 
   public void setApplicationContext( ApplicationContext applicationContext ) throws BeansException {
     this.applicationContext = applicationContext;
@@ -81,6 +97,24 @@ public class JAXRSPluginServlet extends SpringServlet implements ApplicationCont
   public void service( HttpServletRequest request, HttpServletResponse response ) throws ServletException, IOException {
     logger.debug( "servicing request for resource " + request.getPathInfo() ); //$NON-NLS-1$
 
+    request = handleWadlRequestURL( request );
+
+    callParentServiceMethod( request, response );
+
+    // JAX-RS Response return objects do not trigger the "error state" in the HttpServletResponse
+    // Forcing all HTTP Error Status into "sendError" enables the configuration of custom error
+    // pages in web.xml.
+    if ( !response.isCommitted() && isResponseStatusError( response ) ) {
+      response.sendError( response.getStatus() );
+    }
+  }
+
+  private static boolean isResponseStatusError( @NonNull HttpServletResponse response ) {
+    int status = response.getStatus();
+    return status > UNDER_KNOWN_ERROR_RANGE && status < OVER_KNOWN_ERROR_RANGE;
+  }
+
+  private HttpServletRequest handleWadlRequestURL( HttpServletRequest request ) {
     // Jersey's Servlet only responds to 'application.wadl', Plugin requests always have 'plugin/PLUGIN_NAME/api' as a
     // predicate i.e. /plugin/data-access/api/application.wadl.
     //
@@ -89,41 +123,35 @@ public class JAXRSPluginServlet extends SpringServlet implements ApplicationCont
     // seldom and don't need to be that performant.
     if ( WADL_PATTERN.matcher( request.getPathInfo() ).find() ) {
       final HttpServletRequest originalRequest = request;
-      final String appWadlUrl = request.getPathInfo().substring(
-        request.getPathInfo().indexOf( APPLICATION_WADL ), request.getPathInfo().length() );
-      request =
-        (HttpServletRequest) Proxy.newProxyInstance( getClass().getClassLoader(),
-          new Class[]{HttpServletRequest.class}, new InvocationHandler() {
-            public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
-              if ( method.getName().equals( "getPathInfo" ) ) {
-                return appWadlUrl;
-              } else if ( method.getName().equals( "getRequestURL" ) ) {
-                String url = originalRequest.getRequestURL().toString();
-                return new StringBuffer(
-                  url.substring( 0, url.indexOf( originalRequest.getPathInfo() ) ) + "/" + appWadlUrl );
-              } else if ( method.getName().equals( "getRequestURI" ) ) {
-                String uri = originalRequest.getRequestURI();
-                return uri.substring( 0, uri.indexOf( originalRequest.getPathInfo() ) ) + "/" + appWadlUrl;
-              }
-              // We don't care about the Method, delegate out to real Request object.
-              return method.invoke( originalRequest, args );
+      final String appWadlUrl = request.getPathInfo().substring( request.getPathInfo().indexOf( APPLICATION_WADL ) );
+      request = (HttpServletRequest) Proxy.newProxyInstance( getClass().getClassLoader(),
+        new Class[] { HttpServletRequest.class },
+        new InvocationHandler() {
+          public Object invoke( Object proxy, Method method, Object[] args ) throws Throwable {
+            if ( method.getName().equals( "getPathInfo" ) ) {
+              return appWadlUrl;
+            } else if ( method.getName().equals( "getRequestURL" ) ) {
+              String url = originalRequest.getRequestURL().toString();
+              return new StringBuffer(
+                url.substring( 0, url.indexOf( originalRequest.getPathInfo() ) ) + "/" + appWadlUrl );
+            } else if ( method.getName().equals( "getRequestURI" ) ) {
+              String uri = originalRequest.getRequestURI();
+              return uri.substring( 0, uri.indexOf( originalRequest.getPathInfo() ) ) + "/" + appWadlUrl;
             }
+            // We don't care about the Method, delegate out to real Request object.
+            return method.invoke( originalRequest, args );
           }
-        );
+        }
+      );
+
       if ( originalRequest.getRequestURL() != null ) {
         requestThread.set( originalRequest.getRequestURL().toString() );
       } else if ( originalRequest.getRequestURI() != null ) {
-        requestThread.set( originalRequest.getRequestURI().toString() );
+        requestThread.set( originalRequest.getRequestURI() );
       }
     }
-    callParentServiceMethod( request, response );
 
-    // JAX-RS Response return objects do not trigger the "error state" in the HttpServletResponse
-    // Forcing all HTTP Error Status into "sendError" enables the configuration of custom error
-    // pages in web.xml.
-    if ( !response.isCommitted() && response.getStatus() > UNDER_KNOWN_ERROR_RANGE && response.getStatus() < OVER_KNOWN_ERROR_RANGE ) {
-      response.sendError( response.getStatus() );
-    }
+    return request;
   }
 
   // wrapped in its own method for easier stubbing
@@ -147,8 +175,11 @@ public class JAXRSPluginServlet extends SpringServlet implements ApplicationCont
     super.initiate( rc, wa );
   }
 
-  protected ResourceConfig getDefaultResourceConfig( Map<String, Object> props, WebConfig webConfig ) throws ServletException {
-    props.put( "com.sun.jersey.config.property.WadlGeneratorConfig", "org.pentaho.platform.web.servlet.PentahoWadlGeneratorConfig" );
+  protected ResourceConfig getDefaultResourceConfig( Map<String, Object> props, WebConfig webConfig )
+    throws ServletException {
+    props.put(
+      "com.sun.jersey.config.property.WadlGeneratorConfig",
+      "org.pentaho.platform.web.servlet.PentahoWadlGeneratorConfig" );
     return super.getDefaultResourceConfig( props, webConfig );
   }
 }

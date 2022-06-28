@@ -10,7 +10,7 @@
  * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *
- * Copyright 2006 - 2021 Hitachi Vantara.  All rights reserved.
+ * Copyright 2006 - 2022 Hitachi Vantara.  All rights reserved.
  *
  */
 
@@ -25,14 +25,8 @@ import com.sun.jersey.spi.spring.container.servlet.SpringServlet;
 import org.apache.logging.log4j.LogManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.pentaho.platform.api.util.LogUtil;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import javax.servlet.ServletConfig;
@@ -50,30 +44,31 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
  * Created by Dmitriy Stepanov on 28.03.18.
  */
-@RunWith( PowerMockRunner.class )
-@PowerMockIgnore( "jdk.internal.reflect.*" )
-@PrepareForTest( { SpringServlet.class, ServletContainer.class, JAXRSServlet.class } )
 public class JAXRSServletTest {
 
   protected static final String URL = "/url";
 
-  class JAXRSServletT extends JAXRSServlet {
-    @Override protected void callSuperInitiate( ResourceConfig rc, WebApplication wa ) {
+  class JAXRSServletForTesting extends JAXRSServlet {
+    @Override
+    protected void callSuperInitiate( ResourceConfig rc, WebApplication wa ) {
       if ( callSuperIterate.get() ) {
         super.callSuperInitiate( rc, wa );
       }
@@ -84,29 +79,29 @@ public class JAXRSServletTest {
     }
   }
 
-  private AtomicBoolean callSuperIterate = new AtomicBoolean( false );
-  private JAXRSServletT jaxrsServlet;
+  private final AtomicBoolean callSuperIterate = new AtomicBoolean( false );
+  private JAXRSServletForTesting jaxrsServlet;
 
   @Before
   public void setUp() throws Exception {
     callSuperIterate.set( false );
-    jaxrsServlet = PowerMockito.spy( new JAXRSServletT() );
+    jaxrsServlet = spy( new JAXRSServletForTesting() );
   }
 
   @Test
-  public void getContextTest() {
-    Mockito.doReturn( null ).when( jaxrsServlet ).getAppContext();
+  public void testGetContext() {
+    doReturn( null ).when( jaxrsServlet ).getAppContext();
     jaxrsServlet.getContext();
     verify( jaxrsServlet ).getAppContext();
   }
 
   @Test
-  public void serviceTest() {
+  public void testService() {
     HttpServletRequest request = mock( HttpServletRequest.class );
     HttpServletResponse response = mock( HttpServletResponse.class );
     when( request.getMethod() ).thenReturn( "POST" );
     try {
-      Mockito.doNothing().when( (SpringServlet) jaxrsServlet ).service( request, response );
+      doNothing().when( (SpringServlet) jaxrsServlet ).service( request, response );
       jaxrsServlet.service( request, response );
       verify( (SpringServlet) jaxrsServlet ).service( eq( request ), eq( response ) );
 
@@ -135,7 +130,7 @@ public class JAXRSServletTest {
   }
 
   @Path( "url" )
-  public static class ResourseClass {
+  public static class TestResourceClass {
 
     AtomicBoolean b = new AtomicBoolean( true );
 
@@ -153,7 +148,7 @@ public class JAXRSServletTest {
 
 
   @Test
-  public void serviceTestWriter() throws ServletException {
+  public void testServiceWriter() throws ServletException {
     callSuperIterate.set( true );
     HttpServletRequest request = mock( HttpServletRequest.class );
     HttpServletResponse response = mock( HttpServletResponse.class );
@@ -166,8 +161,8 @@ public class JAXRSServletTest {
     ServletContext servletContext = mock( ServletContext.class );
     ConfigurableApplicationContext context = mock( ConfigurableApplicationContext.class );
     String[] beans = {};
-    HashSet<Class> classes = new HashSet<>();
-    classes.add( ResourseClass.class );
+    HashSet<Class<?>> classes = new HashSet<>();
+    classes.add( TestResourceClass.class );
 
     when( request.getMethod() ).thenReturn( "POST" );
     when( request.getRequestURL() ).thenReturn( requestUrl );
@@ -219,7 +214,7 @@ public class JAXRSServletTest {
   }
 
   @Test
-  public void initiateTest() throws Exception {
+  public void testInitiate() throws Exception {
     ResourceConfig rc = mock( ResourceConfig.class );
     HashMap<String, Boolean> features = new HashMap<>();
     when( rc.getFeatures() ).thenReturn( features );
@@ -229,7 +224,7 @@ public class JAXRSServletTest {
     doReturn( messageBodyWorkers ).when( wa ).getMessageBodyWorkers();
     doReturn( null ).when( messageBodyWorkers ).getWriters( MediaType.WILDCARD_TYPE );
     doReturn( mock( ConfigurableApplicationContext.class ) ).when( jaxrsServlet ).getAppContext();
-    PowerMockito.doNothing().when( jaxrsServlet, "callSuperInitiate", any(), any() );
+    doNothing().when( jaxrsServlet ).callSuperInitiate( any(), any() );
     setDebugLogLevel();
     jaxrsServlet.initiate( rc, wa );
     verify( wa ).getMessageBodyWorkers();
@@ -250,11 +245,11 @@ public class JAXRSServletTest {
     java.util.logging.Logger.getLogger( JAXRSServlet.class.getName() ).setLevel( Level.ALL );
 
     // Try Log4J as backend
-    LogUtil.setLevel(LogManager.getLogger(JAXRSServlet.class), org.apache.logging.log4j.Level.DEBUG);
+    LogUtil.setLevel( LogManager.getLogger( JAXRSServlet.class ), org.apache.logging.log4j.Level.DEBUG );
   }
 
   @Test
-  public void initTest() throws Exception {
+  public void testInit() throws Exception {
     ServletConfig servletConfig = mock( ServletConfig.class );
     WebServletConfig webServletConfig = mock( WebServletConfig.class );
     ServletContext servletContext = mock( ServletContext.class );
