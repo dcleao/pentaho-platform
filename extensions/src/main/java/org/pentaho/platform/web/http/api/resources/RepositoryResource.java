@@ -20,7 +20,8 @@
 
 package org.pentaho.platform.web.http.api.resources;
 
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.io.IOUtils;
@@ -47,7 +48,6 @@ import org.pentaho.platform.repository.RepositoryDownloadWhitelist;
 import org.pentaho.platform.repository.RepositoryFilenameUtils;
 import org.pentaho.platform.util.RepositoryPathEncoder;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.security.access.AccessDeniedException;
 
 import javax.servlet.ServletException;
 import javax.ws.rs.Consumes;
@@ -965,7 +965,7 @@ public class RepositoryResource extends AbstractJaxRSResource {
   protected void validateCsrf( @NonNull IContentGenerator contentGenerator,
                                @NonNull String command,
                                @NonNull GeneratorStreamingOutput gso )
-    throws ServletException, IOException, WebApplicationException {
+    throws IOException, WebApplicationException {
 
     if ( csrfValidator != null ) {
       String operationName = command;
@@ -987,11 +987,8 @@ public class RepositoryResource extends AbstractJaxRSResource {
       }
 
       try {
-        // Replace the existing HttpServletRequest with, possibly, a multi-read wrapped one.
-        // When wrapping is not strictly needed, the same request passed in is returned.
-        setHttpServletRequest(
-          csrfValidator.validateRequestOfOperation( httpServletRequest, implementationMethod, operationName ) );
-      } catch ( AccessDeniedException ex ) {
+        csrfValidator.validateRequestOfOperation( httpServletRequest, implementationMethod, operationName );
+      } catch ( CsrfValidationException ex ) {
         throw new WebApplicationException( ex, Status.FORBIDDEN );
       }
     }

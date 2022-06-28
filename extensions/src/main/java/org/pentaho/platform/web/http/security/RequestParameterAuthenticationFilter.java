@@ -22,7 +22,8 @@ package org.pentaho.platform.web.http.security;
 
 import com.hitachivantara.security.web.impl.service.util.MultiReadHttpServletRequestWrapper;
 import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,7 +33,6 @@ import org.pentaho.platform.api.engine.ISystemConfig;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.web.http.messages.Messages;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -164,10 +164,11 @@ public class RequestParameterAuthenticationFilter implements Filter, Initializin
           "RequestParameterAuthenticationFilter.ERROR_0006_HTTP_SERVLET_RESPONSE_REQUIRED" ) ); //$NON-NLS-1$
       }
 
-      HttpServletRequest wrapper = MultiReadHttpServletRequestWrapper.wrap( (HttpServletRequest) request );
+      MultiReadHttpServletRequestWrapper multiReadRequest =
+        MultiReadHttpServletRequestWrapper.wrap( (HttpServletRequest) request );
 
-      String username = wrapper.getParameter( this.userNameParameter );
-      String password = wrapper.getParameter( this.passwordParameter );
+      String username = multiReadRequest.getParameter( this.userNameParameter );
+      String password = multiReadRequest.getParameter( this.passwordParameter );
 
       if ( RequestParameterAuthenticationFilter.logger.isDebugEnabled() ) {
         RequestParameterAuthenticationFilter.logger.debug( Messages.getInstance().getString(
@@ -184,12 +185,12 @@ public class RequestParameterAuthenticationFilter implements Filter, Initializin
           || !existingAuth.isAuthenticated() ) {
           UsernamePasswordAuthenticationToken authRequest =
             new UsernamePasswordAuthenticationToken( username, password );
-          authRequest.setDetails( new WebAuthenticationDetails( wrapper ) );
+          authRequest.setDetails( new WebAuthenticationDetails( multiReadRequest ) );
 
           Authentication authResult;
 
           try {
-            doCsrfValidation( wrapper );
+            doCsrfValidation( multiReadRequest );
 
             authResult = authenticationManager.authenticate( authRequest );
 
@@ -204,9 +205,9 @@ public class RequestParameterAuthenticationFilter implements Filter, Initializin
             SecurityContextHolder.getContext().setAuthentication( null );
 
             if ( ignoreFailure ) {
-              chain.doFilter( wrapper, response );
+              chain.doFilter( multiReadRequest, response );
             } else {
-              authenticationEntryPoint.commence( wrapper, (HttpServletResponse) response, failed );
+              authenticationEntryPoint.commence( multiReadRequest, (HttpServletResponse) response, failed );
             }
 
             return;
@@ -221,19 +222,18 @@ public class RequestParameterAuthenticationFilter implements Filter, Initializin
           SecurityContextHolder.getContext().setAuthentication( authResult );
         }
       }
-      chain.doFilter( wrapper, response );
+      chain.doFilter( multiReadRequest, response );
     } else {
       chain.doFilter( request, response );
     }
 
   }
 
-  private void doCsrfValidation( HttpServletRequest request )
-    throws AuthenticationException, ServletException, IOException {
+  private void doCsrfValidation( HttpServletRequest request ) throws AuthenticationException {
     if ( csrfValidator != null ) {
       try {
         csrfValidator.validateRequestOfMutationOperation( request, this.getClass(), CSRF_OPERATION_NAME );
-      } catch ( AccessDeniedException ex ) {
+      } catch ( CsrfValidationException ex ) {
         throw new CsrfValidationAuthenticationException( ex );
       }
     }

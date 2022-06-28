@@ -21,7 +21,8 @@
 package org.pentaho.platform.web.servlet;
 
 import com.hitachivantara.security.web.impl.service.util.MultiReadHttpServletRequestWrapper;
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import org.apache.http.HttpStatus;
 import org.junit.After;
 import org.junit.Before;
@@ -37,12 +38,10 @@ import org.pentaho.platform.api.engine.PluginBeanException;
 import org.pentaho.platform.engine.core.system.PentahoRequestContextHolder;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
 import org.pentaho.platform.web.servlet.messages.Messages;
-import org.springframework.security.access.AccessDeniedException;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
@@ -51,6 +50,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -70,7 +70,7 @@ public class GenericServletTest {
   private GenericServlet servletSpy;
   private CsrfValidator csrfValidatorMock;
   private HttpServletRequest requestMock;
-  private HttpServletRequestWrapper requestWrapperMock;
+  private MultiReadHttpServletRequestWrapper multiReadRequestMock;
   private HttpServletResponse responseMock;
   private IPentahoSession sessionMock;
   private MockedStatic<PentahoSystem> pentahoSystemMockedStatic;
@@ -92,17 +92,15 @@ public class GenericServletTest {
     requestMock = mock( HttpServletRequest.class );
     when( requestMock.getPathInfo() ).thenReturn( SAMPLE_PATH_INFO );
 
-    requestWrapperMock = mock( HttpServletRequestWrapper.class );
-    when( requestWrapperMock.getHeaderNames() ).thenReturn( Collections.emptyEnumeration() );
+    multiReadRequestMock = mock( MultiReadHttpServletRequestWrapper.class );
+    when( multiReadRequestMock.getHeaderNames() ).thenReturn( Collections.emptyEnumeration() );
 
     multiReadHttpServletRequestWrapperMockedStatic = mockStatic( MultiReadHttpServletRequestWrapper.class );
     multiReadHttpServletRequestWrapperMockedStatic
       .when( () -> MultiReadHttpServletRequestWrapper.wrap( requestMock ) )
-      .thenReturn( requestWrapperMock );
+      .thenReturn( multiReadRequestMock );
 
     csrfValidatorMock = mock( CsrfValidator.class );
-    when( csrfValidatorMock.validateRequestOfOperation( eq( requestWrapperMock ), any(), any() ) )
-      .thenReturn( requestWrapperMock );
 
     responseMock = mock( HttpServletResponse.class );
     when( responseMock.getOutputStream() ).thenReturn( outputStreamMock );
@@ -220,9 +218,10 @@ public class GenericServletTest {
   @Test
   public void testDoGetWhenContentGeneratorAndCsrfValidationFailsThenSendsErrorForbidden() throws Exception {
 
-    AccessDeniedException accessDeniedException = mock( AccessDeniedException.class );
-    when( csrfValidatorMock.validateRequestOfOperation( eq( requestWrapperMock ), any(), any() ) )
-      .thenThrow( accessDeniedException );
+    CsrfValidationException csrfValidationException = mock( CsrfValidationException.class );
+    doThrow( csrfValidationException )
+      .when( csrfValidatorMock )
+      .validateRequestOfOperation( eq( multiReadRequestMock ), any(), any() );
 
     servletSpy.doGet( requestMock, responseMock );
 
@@ -237,7 +236,8 @@ public class GenericServletTest {
     servletSpy.doGet( requestMock, responseMock );
 
     verify( csrfValidatorMock, times( 1 ) )
-      .validateRequestOfOperation( eq( requestWrapperMock ), any(), eq( SAMPLE_CONTENT_GENERATOR_CMD.substring( 1 ) ) );
+      .validateRequestOfOperation( eq( multiReadRequestMock ), any(),
+        eq( SAMPLE_CONTENT_GENERATOR_CMD.substring( 1 ) ) );
 
     verify( contentGeneratorMock, times( 1 ) ).createContent();
   }
@@ -251,7 +251,7 @@ public class GenericServletTest {
     servletSpy.doGet( requestMock, responseMock );
 
     verify( csrfValidatorMock, times( 1 ) )
-      .validateRequestOfOperation( eq( requestWrapperMock ), any(), eq( null ) );
+      .validateRequestOfOperation( eq( multiReadRequestMock ), any(), eq( null ) );
 
     verify( contentGeneratorMock, times( 1 ) ).createContent();
   }
@@ -267,7 +267,7 @@ public class GenericServletTest {
     servletSpy.doGet( requestMock, responseMock );
 
     verify( csrfValidatorMock, times( 1 ) )
-      .validateRequestOfOperation( eq( requestWrapperMock ), any(), eq( SAMPLE_CUSTOM_OPERATION_NAME ) );
+      .validateRequestOfOperation( eq( multiReadRequestMock ), any(), eq( SAMPLE_CUSTOM_OPERATION_NAME ) );
 
     verify( contentGeneratorMock, times( 1 ) ).createContent();
   }

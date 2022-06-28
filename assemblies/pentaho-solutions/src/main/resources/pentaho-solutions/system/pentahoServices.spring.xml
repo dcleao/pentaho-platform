@@ -138,7 +138,7 @@
   <bean class="org.pentaho.platform.web.http.api.resources.BlockoutResource" scope="request"/>
   <bean class="org.pentaho.platform.web.http.api.resources.RepositoryResource" scope="request">
     <property name="csrfValidator">
-      <pen:bean class="com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator"/>
+      <pen:bean class="com.hitachivantara.security.web.service.csrf.CsrfValidator"/>
     </property>
     <property name="whitelist" ref="RepositoryDownloadWhitelist"/>
   </bean>
@@ -171,7 +171,7 @@
   <bean class="org.pentaho.platform.web.http.api.resources.ServiceResource" scope="request"/>
 
   <!-- See also, corresponding CORS configuration in applicationContext-spring-security-csrf.xml -->
-  <bean class="com.hitachivantara.security.web.impl.service.csrf.jaxrs.CsrfTokenService" scope="request">
+  <bean class="com.hitachivantara.security.web.impl.service.jaxrsv1.csrf.CsrfTokenService" scope="request">
     <constructor-arg>
       <pen:bean class="com.hitachivantara.security.web.model.csrf.CsrfConfiguration"/>
     </constructor-arg>

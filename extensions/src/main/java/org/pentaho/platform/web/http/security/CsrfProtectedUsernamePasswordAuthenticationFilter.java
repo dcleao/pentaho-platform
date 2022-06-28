@@ -21,17 +21,14 @@
 package org.pentaho.platform.web.http.security;
 
 import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.Nullable;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Processes an authentication form submission in a CSRF safe way.
@@ -84,15 +81,13 @@ public class CsrfProtectedUsernamePasswordAuthenticationFilter extends UsernameP
 
   @Override
   public Authentication attemptAuthentication( HttpServletRequest request, HttpServletResponse response )
-    throws CsrfValidationAuthenticationException, InternalAuthenticationServiceException {
+    throws CsrfValidationAuthenticationException {
 
     if ( csrfValidator != null ) {
       try {
         csrfValidator.validateRequestOfMutationOperation( request, this.getClass(), CSRF_OPERATION_NAME );
-      } catch ( AccessDeniedException ex ) {
+      } catch ( CsrfValidationException ex ) {
         throw new CsrfValidationAuthenticationException( ex );
-      } catch ( ServletException | IOException ex ) {
-        throw new InternalAuthenticationServiceException( "CSRF validation failed", ex );
       }
     }
 

@@ -2132,6 +2132,10 @@
       <groupId>com.hitachivantara.security.web</groupId>
       <artifactId>security-web-server-service-impl</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.hitachivantara.security.web</groupId>
+      <artifactId>security-web-server-service-jax-rs-v1-impl</artifactId>
+    </dependency>
     <!-- endregion HV Web Security -->
 
     <dependency>

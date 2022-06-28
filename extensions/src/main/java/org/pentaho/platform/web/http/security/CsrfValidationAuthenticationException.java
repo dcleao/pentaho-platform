@@ -17,6 +17,8 @@
 
 package org.pentaho.platform.web.http.security;
 
+import com.hitachivantara.security.web.service.csrf.InvalidCsrfTokenInRequestException;
+import com.hitachivantara.security.web.service.csrf.MissingCsrfTokenInRepositoryException;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.springframework.security.core.AuthenticationException;
 
@@ -24,10 +26,8 @@ import org.springframework.security.core.AuthenticationException;
  * An authentication exception which represents the failure of CSRF validation during authentication.
  * <p>
  * The specific CSRF validation failure depends on the specific class of {@link #getCause()},
- * {@link org.springframework.security.web.csrf.MissingCsrfTokenException} or
- * {@link org.springframework.security.web.csrf.InvalidCsrfTokenException}.
- * Other errors such as {@link javax.servlet.ServletException} or {@link java.io.IOException}
- * may also result from CSRF validation.
+ * {@link MissingCsrfTokenInRepositoryException} or
+ * {@link InvalidCsrfTokenInRequestException}.
  */
 public class CsrfValidationAuthenticationException extends AuthenticationException {
   public CsrfValidationAuthenticationException( @NonNull Throwable cause ) {

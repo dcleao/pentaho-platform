@@ -18,7 +18,8 @@
 package org.pentaho.platform.web.servlet;
 
 import com.hitachivantara.security.web.impl.service.util.MultiReadHttpServletRequestWrapper;
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.io.IOUtils;
@@ -46,11 +47,9 @@ import org.pentaho.platform.web.http.MessageFormatUtils;
 import org.pentaho.platform.web.http.request.HttpRequestParameterProvider;
 import org.pentaho.platform.web.http.session.HttpSessionParameterProvider;
 import org.pentaho.platform.web.servlet.messages.Messages;
-import org.springframework.security.access.AccessDeniedException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -285,12 +284,12 @@ public class GenericServlet extends ServletBase {
 
     // Wrapping the request upfront ensures that `validateCsrf` is able to read the token parameter from the
     // request body, if needed, despite the `createParameterProviders` call, which "gets" the request's input stream.
-    HttpServletRequestWrapper requestWrapper = MultiReadHttpServletRequestWrapper.wrap( request );
+    MultiReadHttpServletRequestWrapper multiReadRequest = MultiReadHttpServletRequestWrapper.wrap( request );
 
     Map<String, IParameterProvider> parameterProviders =
-      createParameterProviders( requestWrapper, response, session, contentGeneratorCmd );
+      createParameterProviders( multiReadRequest, response, session, contentGeneratorCmd );
 
-    if ( !validateCsrf( requestWrapper, response, contentGenerator, contentGeneratorCmd, parameterProviders ) ) {
+    if ( !validateCsrf( multiReadRequest, response, contentGenerator, contentGeneratorCmd, parameterProviders ) ) {
       // Response already handled.
       return;
     }
@@ -298,7 +297,7 @@ public class GenericServlet extends ServletBase {
     response.setCharacterEncoding( LocaleHelper.getSystemEncoding() );
 
     IOutputHandler outputHandler = getOutputHandler( response, true );
-    outputHandler.setMimeTypeListener( new HttpMimeTypeListener( requestWrapper, response ) );
+    outputHandler.setMimeTypeListener( new HttpMimeTypeListener( multiReadRequest, response ) );
 
     IPentahoRequestContext requestContext = PentahoRequestContextHolder.getRequestContext();
     assert requestContext != null;
@@ -361,13 +360,12 @@ public class GenericServlet extends ServletBase {
     return parameterProviders;
   }
 
-  @Nullable
-  private boolean validateCsrf( @NonNull HttpServletRequestWrapper requestWrapper,
+  private boolean validateCsrf( @NonNull MultiReadHttpServletRequestWrapper multiReadRequest,
                                 @NonNull HttpServletResponse response,
                                 @NonNull IContentGenerator contentGenerator,
                                 @Nullable String contentGeneratorCmd,
                                 @NonNull Map<String, IParameterProvider> parameterProviders )
-    throws IOException, ServletException {
+    throws IOException {
 
     if ( csrfValidator != null ) {
       String operationName = null;
@@ -393,8 +391,8 @@ public class GenericServlet extends ServletBase {
       }
 
       try {
-        csrfValidator.validateRequestOfOperation( requestWrapper, implementationMethod, operationName );
-      } catch ( AccessDeniedException ex ) {
+        csrfValidator.validateRequestOfOperation( multiReadRequest, implementationMethod, operationName );
+      } catch ( CsrfValidationException ex ) {
         response.sendError( HttpStatus.SC_FORBIDDEN );
         return false;
       }

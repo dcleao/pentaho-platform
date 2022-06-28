@@ -30,80 +30,6 @@
       -->
     <property name="upfrontValidationRequestMatcher">
       <swm:or-request-matcher>
-        <!-- REST /api/* -->
-
-        <!--
-          POST /api/user-settings/recent
-          POST /api/user-settings/favorites
-          POST /api/user-settings/MANTLE_SHOW_NAVIGATOR
-          POST /api/user-settings/MANTLE_SHOW_HIDDEN_FILES
-          POST /api/user-settings/MANTLE_SHOW_DESCRIPTIONS_FOR_TOOLTIPS
-          POST /api/user-settings/*
-        -->
-        <swm:regex-request-matcher pattern="^/api/user-settings/.*" methods="POST" />
-
-        <!--
-          POST /api/mantle/session-variable
-        -->
-        <swm:regex-request-matcher pattern="^/api/mantle/session-variable\b.*" methods="POST" />
-
-        <!--
-          POST /api/repo/files/import
-        -->
-        <swm:regex-request-matcher pattern="^/api/repo/files/import\b.*" methods="POST" />
-
-        <!--
-          POST /api/theme/set
-         -->
-        <swm:regex-request-matcher pattern="^/api/theme/set\b.*" methods="POST" />
-
-        <!--
-          GET /api/system/refresh/globalActions
-          GET /api/system/refresh/metadata
-          GET /api/system/refresh/systemSettings
-          GET /api/system/refresh/reportingDataCache
-          GET /api/system/refresh/mondrianSingleSchemaCache
-          GET /api/system/refresh/mondrianSchemaCache
-         -->
-        <swm:regex-request-matcher pattern="^/api/system/refresh/(globalActions|metadata|systemSettings|reportingDataCache|mondrianSingleSchemaCache|mondrianSchemaCache)\b.*" methods="GET" />
-
-        <!--
-         POST /api/licenseManager/addLicense
-        -->
-        <swm:regex-request-matcher pattern="^/api/licenseManager/addLicense\b.*" methods="POST" />
-
-        <!--
-         GET /api/emailconfig/resetEmailConfig
-        -->
-        <swm:regex-request-matcher pattern="^/api/emailconfig/resetEmailConfig\b.*" methods="GET" />
-
-        <!--
-         GET /api/session/setredirect
-        -->
-        <swm:regex-request-matcher pattern="^/api/session/setredirect\b.*" methods="GET" />
-
-        <!--
-         POST /api/repo/publish/publishfile
-         POST /api/repo/publish/file
-         POST /api/repo/publish/fileWithOptions
-        -->
-        <swm:regex-request-matcher pattern="^/api/repo/publish/(fileWithOptions|publishfile|file)\b.*" methods="POST" />
-
-        <!--
-         POST /api/scheduler/job
-         POST /api/scheduler/job/update
-        -->
-        <swm:regex-request-matcher pattern="^/api/scheduler/job\b.*" methods="POST" />
-
-        <!--
-         POST /api/scheduler/start
-         POST /api/scheduler/pause
-         POST /api/scheduler/pauseJob
-         POST /api/scheduler/resumeJob
-         POST /api/scheduler/triggerNow
-        -->
-        <swm:regex-request-matcher pattern="^/api/scheduler/(start|pause|pauseJob|resumeJob|triggerNow)\b.*" methods="POST" />
-
         <!--
          POST /osgi/cxf/marketplace/services/plugin/{pluginId}/{versionBranch}
         -->
@@ -156,24 +82,37 @@
 
         To disable CSRF protection for all or some service operations,
         uncomment the following property and include only the identifiers of the unprotected operations.
-
-        * Login operation
-          - example URL: /j_spring_security_check
-          - operation id: org.pentaho.platform.web.http.security.CsrfProtectedUsernamePasswordAuthenticationFilter#authenticate
-
-        * Request Parameter authentication operation
-          - example URL: /some-api?userid=admin&password=password
-          - operation id: org.pentaho.platform.web.http.security.RequestParameterAuthenticationFilter#authenticate
       -->
     <!--
     <property name="disabledValidationOperationIds">
       <util:set>
-
         <value>org.pentaho.platform.web.http.security.CsrfProtectedUsernamePasswordAuthenticationFilter#authenticate</value>
         <value>org.pentaho.platform.web.http.security.RequestParameterAuthenticationFilter#authenticate</value>
         <value>org.pentaho.platform.web.http.filters.ProxyTrustingFilter#authenticate</value>
-
-     </util:set>
+        <value>org.pentaho.platform.web.http.api.resources.UserConsoleResource#setUserSetting</value>
+        <value>org.pentaho.platform.web.http.api.resources.UserConsoleResource#setSessionVariable</value>
+        <value>org.pentaho.platform.web.http.api.resources.RepositoryImportResource#doPostImport</value>
+        <value>org.pentaho.platform.web.http.api.resources.ThemeResource#setTheme</value>
+        <value>org.pentaho.platform.web.http.api.resources.SystemRefreshResource#refreshGlobalActions</value>
+        <value>org.pentaho.platform.web.http.api.resources.SystemRefreshResource#refreshMetadata</value>
+        <value>org.pentaho.platform.web.http.api.resources.SystemRefreshResource#refreshSystemSettings</value>
+        <value>org.pentaho.platform.web.http.api.resources.SystemRefreshResource#refreshReportingDataCache</value>
+        <value>org.pentaho.platform.web.http.api.resources.SystemRefreshResource#refreshMondrianSchemaCache</value>
+        <value>com.pentaho.platform.web.http.api.resources.TLSupManagerResource#addLicense</value>
+        <value>org.pentaho.platform.web.http.api.resources.EmailResource#resetEmailConfig</value>
+        <value>org.pentaho.platform.web.http.api.resources.SessionResource#setredirect</value>
+        <value>org.pentaho.platform.web.http.api.resources.RepositoryPublishResource#writeFile</value>
+        <value>org.pentaho.platform.web.http.api.resources.RepositoryPublishResource#writeFileWithEncodedName</value>
+        <value>org.pentaho.platform.web.http.api.resources.RepositoryPublishResource#writeFileWithEncodedNameWithOptions</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#createJob</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#updateJob</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#pauseJob</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#resumeJob</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#triggerNow</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#start</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#pause</value>
+        <value>org.pentaho.platform.web.http.api.resources.SchedulerResource#shutdown</value>
+      </util:set>
     </property>
  -->
   </bean>
@@ -202,7 +141,7 @@
     <pen:publish as-type="INTERFACES" />
   </bean>
 
-  <bean id="csrfHelper" class="com.hitachivantara.security.web.impl.service.csrf.servlet.DefaultCsrfHelper">
+  <bean id="csrfHelper" class="com.hitachivantara.security.web.impl.service.csrf.DefaultCsrfHelper">
     <!-- Possibly needed in other app contexts -->
     <pen:publish as-type="INTERFACES" />
 
@@ -221,7 +160,7 @@
         class="com.hitachivantara.security.web.impl.service.servop.DefaultServiceClassMetadataAnalyzer" />
 
   <!-- CSRF Validator -->
-  <bean id="csrfValidator" class="com.hitachivantara.security.web.impl.service.csrf.servlet.DefaultCsrfValidator">
+  <bean id="csrfValidator" class="com.hitachivantara.security.web.impl.service.csrf.DefaultCsrfValidator">
     <!-- Possibly needed in other app contexts -->
     <pen:publish as-type="INTERFACES" />
 
@@ -234,7 +173,7 @@
   <!-- Servlet Filter that checks that requests to protected endpoints specify a CSRF token.
        Should be the first filter. See `filterChainProxy` in `applicationContext-spring-security.xml`.
     -->
-  <bean id="csrfGateFilter" class="com.hitachivantara.security.web.impl.service.csrf.servlet.CsrfGateFilter">
+  <bean id="csrfGateFilter" class="com.hitachivantara.security.web.impl.service.csrf.CsrfGateFilter">
     <constructor-arg ref="csrfValidator" />
   </bean>
 
@@ -245,7 +184,7 @@
     Depends on `csrfGateFilter` being applied to it.
     Should not require authentication, so that a token can be obtained for login.
 
-    <bean class="com.hitachivantara.security.web.impl.service.csrf.jaxrs.CsrfTokenService" scope="request" />
+    <bean class="com.hitachivantara.security.web.impl.service.jaxrsv1.csrf.CsrfTokenService" scope="request" />
   -->
 
   <!-- Publish the CORS configuration of the CSRF token service -->

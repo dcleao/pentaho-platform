@@ -20,7 +20,8 @@
 
 package org.pentaho.platform.web.http.api.resources;
 
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.junit.After;
 import org.junit.Before;
@@ -36,7 +37,6 @@ import org.pentaho.platform.api.engine.PluginBeanException;
 import org.pentaho.platform.api.repository2.unified.IUnifiedRepository;
 import org.pentaho.platform.api.repository2.unified.RepositoryFile;
 import org.pentaho.platform.engine.core.system.PentahoSystem;
-import org.springframework.security.access.AccessDeniedException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -53,6 +53,7 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -141,9 +142,6 @@ public class RepositoryResourceTest {
     public void configureMocks() {
       when( pluginManagerMock.isPublic( pluginId, resourceId ) ).thenReturn( false );
 
-      // Successful validation by default
-      configureMocksWithCsrfValidationRequestResult( httpServletRequestMock );
-
       if ( !operationName.equals( commandId ) ) {
         contentGeneratorMock = mock( IServiceOperationAwareContentGenerator.class );
         when( ( (IServiceOperationAwareContentGenerator) contentGeneratorMock ).getServiceOperationName() )
@@ -153,29 +151,16 @@ public class RepositoryResourceTest {
       }
     }
 
-    public void configureMocksWithCsrfValidationRequestResult( HttpServletRequest httpServletRequest ) {
-      // Successful validation by default
+    public void configureMocksWithCsrfValidationError( @NonNull CsrfValidationException error ) {
       try {
-        when( csrfValidatorMock.validateRequestOfOperation(
+        doThrow( error )
+          .when( csrfValidatorMock )
+          .validateRequestOfOperation(
           any( HttpServletRequest.class ),
           any( Method.class ),
-          eq( operationName ) ) )
-          .thenReturn( httpServletRequest );
-      } catch ( IOException | ServletException e ) {
-        // Never happens.
-        throw new RuntimeException( e );
-      }
-    }
-
-    public void configureMocksWithCsrfValidationError( @NonNull Throwable error ) {
-      try {
-        when( csrfValidatorMock.validateRequestOfOperation(
-          any( HttpServletRequest.class ),
-          any( Method.class ),
-          eq( operationName ) ) )
-          .thenThrow( error );
-      } catch ( IOException | ServletException e ) {
-        // Never happens.
+            eq( operationName ) );
+      } catch ( CsrfValidationException e ) {
+        // Never happens at mock time.
         throw new RuntimeException( e );
       }
     }
@@ -197,7 +182,8 @@ public class RepositoryResourceTest {
     }
 
     public void testDoGetWhenCSRFValidationSucceedsThenRespondsWithOk()
-      throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
+      throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException,
+      CsrfValidationException {
 
       configureMocks();
 
@@ -216,63 +202,10 @@ public class RepositoryResourceTest {
           eq( operationName ) );
     }
 
-    public void testDoGetWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned()
-      throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-      configureMocks();
-
-      HttpServletRequest otherHttpServletRequestMock = mock( HttpServletRequest.class );
-      configureMocksWithCsrfValidationRequestResult( otherHttpServletRequestMock );
-
-      // ---
-
-      repositoryResource.doGet( contextId, resourceId );
-
-      // ---
-
-      assertSame( otherHttpServletRequestMock, repositoryResource.httpServletRequest );
-
-      verify( csrfValidatorMock, times( 1 ) )
-        .validateRequestOfOperation(
-          any( HttpServletRequest.class ),
-          any( Method.class ),
-          eq( operationName ) );
-    }
-
-    public void testDoGetWhenContentGeneratorIsServiceMappingAwareThenObtainsAndUsesTheCustomOperationName()
-      throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-      configureMocks();
-
-      String customOperationName = "customOperationName";
-      contentGeneratorMock = mock( IServiceOperationAwareContentGenerator.class );
-      when( ( (IServiceOperationAwareContentGenerator) contentGeneratorMock ).getServiceOperationName() )
-        .thenReturn( customOperationName );
-
-      when( httpServletRequestMock.getHeaderNames() ).thenReturn( Collections.emptyEnumeration() );
-
-      HttpServletRequest otherHttpServletRequestMock = mock( HttpServletRequest.class );
-      configureMocksWithCsrfValidationRequestResult( otherHttpServletRequestMock );
-
-      // ---
-
-      repositoryResource.doGet( contextId, resourceId );
-
-      // ---
-
-      assertSame( otherHttpServletRequestMock, repositoryResource.httpServletRequest );
-
-      verify( csrfValidatorMock, times( 1 ) )
-        .validateRequestOfOperation(
-          any( HttpServletRequest.class ),
-          any( Method.class ),
-          eq( customOperationName ) );
-    }
-
     public void testDoGetWhenCSRFValidationFailsWithAccessDeniedThenThrowsWebApplicationException()
       throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
 
-      AccessDeniedException validationException = new AccessDeniedException( "Access Denied Test" );
+      CsrfValidationException validationException = mock( CsrfValidationException.class );
 
       configureMocks();
       configureMocksWithCsrfValidationError( validationException );
@@ -286,42 +219,6 @@ public class RepositoryResourceTest {
         fail( "Should have thrown WebApplicationException" );
       } catch ( WebApplicationException ex ) {
         assertSame( validationException, ex.getCause() );
-      }
-    }
-
-    public void testDoGetWhenCSRFValidationFailsWithServletExceptionThenThrowsBack()
-      throws PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-      ServletException validationException = new ServletException( "ServletException Test" );
-
-      configureMocks();
-      configureMocksWithCsrfValidationError( validationException );
-
-      // ---
-
-      try {
-        repositoryResource.doGet( contextId, resourceId );
-        fail( "Should have thrown ServletException" );
-      } catch ( ServletException ex ) {
-        assertSame( validationException, ex );
-      }
-    }
-
-    public void testDoGetWhenCSRFValidationFailsWithIOExceptionThenThrowsBack()
-      throws ServletException, PluginBeanException, ObjectFactoryException, URISyntaxException {
-
-      IOException validationException = new IOException( "IOException Test" );
-
-      configureMocks();
-      configureMocksWithCsrfValidationError( validationException );
-
-      // ---
-
-      try {
-        repositoryResource.doGet( contextId, resourceId );
-        fail( "Should have thrown IOException" );
-      } catch ( IOException ex ) {
-        assertSame( validationException, ex );
       }
     }
   }
@@ -354,24 +251,19 @@ public class RepositoryResourceTest {
 
   @Test
   public void testDoGetWithContentTypeCGAndWhenCSRFValidationSucceedsThenRespondsWithOk()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
+    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException,
+    CsrfValidationException {
 
     new ContentTypeCGExample().testDoGetWhenCSRFValidationSucceedsThenRespondsWithOk();
   }
 
   @Test
   public void testDoGetWithContentTypeCGAndWhenContentGeneratorIsServiceMappingAwareThenObtainsAndUsesTheCustomOperationName()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
+    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException,
+    CsrfValidationException {
 
     new ContentTypeCGExample( "customOperationName" )
       .testDoGetWhenCSRFValidationSucceedsThenRespondsWithOk();
-  }
-
-  @Test
-  public void testDoGetWithContentTypeCGAndWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new ContentTypeCGExample().testDoGetWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned();
   }
 
   @Test
@@ -379,20 +271,6 @@ public class RepositoryResourceTest {
     throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
 
     new ContentTypeCGExample().testDoGetWhenCSRFValidationFailsWithAccessDeniedThenThrowsWebApplicationException();
-  }
-
-  @Test
-  public void testDoGetWithContentTypeCGAndWhenCSRFValidationFailsWithServletExceptionThenThrowsBack()
-    throws PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new ContentTypeCGExample().testDoGetWhenCSRFValidationFailsWithServletExceptionThenThrowsBack();
-  }
-
-  @Test
-  public void testDoGetWithContentTypeCGAndWhenCSRFValidationFailsWithIOExceptionThenThrowsBack()
-    throws ServletException, PluginBeanException, ObjectFactoryException, URISyntaxException {
-
-    new ContentTypeCGExample().testDoGetWhenCSRFValidationFailsWithIOExceptionThenThrowsBack();
   }
   // endregion
 
@@ -430,16 +308,10 @@ public class RepositoryResourceTest {
 
   @Test
   public void testDoGetWithRepositoryFileCGAndWhenCSRFValidationSucceedsThenRespondsWithOk()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
+    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException,
+    CsrfValidationException {
 
     new RepositoryFileCGExample().testDoGetWhenCSRFValidationSucceedsThenRespondsWithOk();
-  }
-
-  @Test
-  public void testDoGetWithRepositoryFileCGAndWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new RepositoryFileCGExample().testDoGetWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned();
   }
 
   @Test
@@ -447,20 +319,6 @@ public class RepositoryResourceTest {
     throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
 
     new RepositoryFileCGExample().testDoGetWhenCSRFValidationFailsWithAccessDeniedThenThrowsWebApplicationException();
-  }
-
-  @Test
-  public void testDoGetWithRepositoryFileCGAndWhenCSRFValidationFailsWithServletExceptionThenThrowsBack()
-    throws PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new RepositoryFileCGExample().testDoGetWhenCSRFValidationFailsWithServletExceptionThenThrowsBack();
-  }
-
-  @Test
-  public void testDoGetWithRepositoryFileCGAndWhenCSRFValidationFailsWithIOExceptionThenThrowsBack()
-    throws PluginBeanException, ObjectFactoryException, ServletException, URISyntaxException {
-
-    new RepositoryFileCGExample().testDoGetWhenCSRFValidationFailsWithIOExceptionThenThrowsBack();
   }
   // endregion
 
@@ -491,16 +349,10 @@ public class RepositoryResourceTest {
 
   @Test
   public void testDoGetWithDirectCGAndWhenCSRFValidationSucceedsThenRespondsWithOk()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
+    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException,
+    CsrfValidationException {
 
     new DirectCGExample().testDoGetWhenCSRFValidationSucceedsThenRespondsWithOk();
-  }
-
-  @Test
-  public void testDoGetWithDirectCGAndWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned()
-    throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new DirectCGExample().testDoGetWhenCSRFValidationSucceedsThenReplacesServletRequestWithThatReturned();
   }
 
   @Test
@@ -508,20 +360,6 @@ public class RepositoryResourceTest {
     throws ServletException, PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
 
     new DirectCGExample().testDoGetWhenCSRFValidationFailsWithAccessDeniedThenThrowsWebApplicationException();
-  }
-
-  @Test
-  public void testDoGetWithDirectCGAndWhenCSRFValidationFailsWithServletExceptionThenThrowsBack()
-    throws PluginBeanException, ObjectFactoryException, IOException, URISyntaxException {
-
-    new DirectCGExample().testDoGetWhenCSRFValidationFailsWithServletExceptionThenThrowsBack();
-  }
-
-  @Test
-  public void testDoGetWithDirectCGAndWhenCSRFValidationFailsWithIOExceptionThenThrowsBack()
-    throws PluginBeanException, ObjectFactoryException, ServletException, URISyntaxException {
-
-    new DirectCGExample().testDoGetWhenCSRFValidationFailsWithIOExceptionThenThrowsBack();
   }
   // endregion
   // endregion

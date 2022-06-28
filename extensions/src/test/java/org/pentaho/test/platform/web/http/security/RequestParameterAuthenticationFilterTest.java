@@ -20,8 +20,8 @@
 
 package org.pentaho.test.platform.web.http.security;
 
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
-import edu.umd.cs.findbugs.annotations.NonNull;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,7 +34,6 @@ import org.pentaho.platform.web.http.security.RequestParameterAuthenticationFilt
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -53,10 +52,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.pentaho.platform.web.http.security.RequestParameterAuthenticationFilter.CSRF_OPERATION_NAME;
 
 public class RequestParameterAuthenticationFilterTest {
@@ -138,54 +137,26 @@ public class RequestParameterAuthenticationFilterTest {
     assertSame( csrfValidatorMock, filter.getCsrfValidator() );
   }
 
-  private void testWhenCsrfValidationFailsWithGivenExceptionThenRethrows( @NonNull Throwable validateError )
-    throws ServletException, IOException {
-
-    CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
+  @Test
+  public void testWhenCsrfValidationFailsWithValidationExceptionThenDelegatesToAuthenticationEntryPoint()
+    throws ServletException, IOException, CsrfValidationException {
 
     final MockHttpServletRequest request =
-      new MockHttpServletRequest( "GET",
-        "http://localhost:9080/pentaho-di/kettle/executeTrans" );
+      new MockHttpServletRequest( "GET", "http://localhost:9080/pentaho-di/kettle/executeTrans" );
 
     request.addParameter( "userid", "admin" );
     request.addParameter( "password", "password" );
 
-    filter.setAuthenticationManager( authManagerMock );
-    filter.setCsrfValidator( csrfValidatorMock );
+    CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
 
-    when(
-      csrfValidatorMock.validateRequestOfMutationOperation(
+    CsrfValidationException error = mock( CsrfValidationException.class );
+
+    doThrow( error )
+      .when( csrfValidatorMock )
+      .validateRequestOfMutationOperation(
         any( HttpServletRequest.class ),
         eq( filter.getClass() ),
-        anyString() ) )
-      .thenThrow( validateError );
-
-    // ---
-
-    filter.doFilter( request, new MockHttpServletResponse(), new MockFilterChain() );
-
-  }
-
-  @Test
-  public void testWhenCsrfValidationFailsWithAuthenticationExceptionThenDelegatesToAuthenticationEntryPoint()
-    throws ServletException, IOException {
-
-    final MockHttpServletRequest request =
-      new MockHttpServletRequest( "GET",
-        "http://localhost:9080/pentaho-di/kettle/executeTrans" );
-
-    request.addParameter( "userid", "admin" );
-    request.addParameter( "password", "password" );
-
-    CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
-
-    AccessDeniedException error = mock( AccessDeniedException.class );
-
-    when( csrfValidatorMock.validateRequestOfMutationOperation(
-      any( HttpServletRequest.class ),
-      eq( filter.getClass() ),
-      anyString() ) )
-      .thenThrow( error );
+        anyString() );
 
     filter.setAuthenticationManager( authManagerMock );
     filter.setCsrfValidator( csrfValidatorMock );
@@ -205,28 +176,11 @@ public class RequestParameterAuthenticationFilterTest {
         authErrorCaptor.capture() );
 
     assertSame( error, authErrorCaptor.getValue().getCause() );
-
-
-  }
-
-  @Test( expected = IOException.class )
-  public void testWhenCsrfValidationFailsWithIOExceptionThenRethrows() throws ServletException, IOException {
-
-    IOException error = mock( IOException.class );
-
-    testWhenCsrfValidationFailsWithGivenExceptionThenRethrows( error );
-  }
-
-  @Test( expected = ServletException.class )
-  public void testWhenCsrfValidationFailsWithServletExceptionThenRethrows() throws ServletException, IOException {
-
-    ServletException error = mock( ServletException.class );
-
-    testWhenCsrfValidationFailsWithGivenExceptionThenRethrows( error );
   }
 
   @Test
-  public void testCsrfValidationIsCalledWithCorrectOperationId() throws ServletException, IOException {
+  public void testCsrfValidationIsCalledWithCorrectOperationId()
+    throws ServletException, IOException, CsrfValidationException {
 
     CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
     final MockHttpServletRequest request =
@@ -253,13 +207,13 @@ public class RequestParameterAuthenticationFilterTest {
   }
 
   @Test
-  public void testWhenCsrfValidationSucceedsThenDelegatesToFilterChain() throws ServletException, IOException {
+  public void testWhenCsrfValidationSucceedsThenDelegatesToFilterChain()
+    throws ServletException, IOException, CsrfValidationException {
 
     CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
 
     final MockHttpServletRequest request =
-      new MockHttpServletRequest( "GET",
-        "http://localhost:9080/pentaho-di/kettle/executeTrans" );
+      new MockHttpServletRequest( "GET", "http://localhost:9080/pentaho-di/kettle/executeTrans" );
 
     request.addParameter( "userid", "admin" );
     request.addParameter( "password", "password" );
@@ -268,13 +222,14 @@ public class RequestParameterAuthenticationFilterTest {
     filter.setCsrfValidator( csrfValidatorMock );
     filter.setIgnoreFailure( true );
 
-    AccessDeniedException error = mock( AccessDeniedException.class );
+    CsrfValidationException error = mock( CsrfValidationException.class );
 
-    when( csrfValidatorMock.validateRequestOfMutationOperation(
-      any( HttpServletRequest.class ),
-      eq( filter.getClass() ),
-      anyString() ) )
-      .thenThrow( error );
+    doThrow( error )
+      .when( csrfValidatorMock )
+      .validateRequestOfMutationOperation(
+        any( HttpServletRequest.class ),
+        eq( filter.getClass() ),
+        anyString() );
 
     // ---
 

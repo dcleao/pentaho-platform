@@ -55,7 +55,7 @@
   <!-- CORS filter that handles pre-flight and normal CORS requests.
        See use in `filterChainProxy` in `applicationContext-spring-security.xml`.
        -->
-  <bean id="corsFilter" class="com.hitachivantara.security.web.impl.service.cors.servlet.CorsProtocolFilter">
+  <bean id="corsFilter" class="com.hitachivantara.security.web.impl.service.cors.CorsProtocolFilter">
     <constructor-arg ref="aggregatedCorsConfiguration" />
   </bean>
 </beans>

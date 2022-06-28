@@ -16,19 +16,16 @@
  */
 package org.pentaho.platform.web.http.security;
 
-import com.hitachivantara.security.web.service.csrf.servlet.CsrfValidator;
+import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
+import com.hitachivantara.security.web.service.csrf.CsrfValidator;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
-import java.io.IOException;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -36,6 +33,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -113,8 +111,9 @@ public class CsrfProtectedUsernamePasswordAuthenticationFilterTest {
     verify( authenticationManagerMock, times( 1 ) ).authenticate( any() );
   }
 
-  private void testAttemptAuthenticationFailsThenThrowsCsrfValidationAuthException( @NonNull Throwable validateError )
-    throws ServletException, IOException {
+  private void testAttemptAuthenticationFailsThenThrowsCsrfValidationAuthException(
+    @NonNull CsrfValidationException validateError )
+    throws CsrfValidationAuthenticationException {
 
     CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
 
@@ -127,9 +126,13 @@ public class CsrfProtectedUsernamePasswordAuthenticationFilterTest {
     filter.setAuthenticationManager( authenticationManagerMock );
     filter.setCsrfValidator( csrfValidatorMock );
 
-    when(
-      csrfValidatorMock.validateRequestOfMutationOperation( eq( requestMock ), eq( filter.getClass() ), anyString() ) )
-      .thenThrow( validateError );
+    try {
+      doThrow( validateError )
+        .when( csrfValidatorMock )
+        .validateRequestOfMutationOperation( eq( requestMock ), eq( filter.getClass() ), anyString() );
+    } catch ( CsrfValidationException e ) {
+      // Does not happen at mock time.
+    }
 
     // ---
 
@@ -137,10 +140,9 @@ public class CsrfProtectedUsernamePasswordAuthenticationFilterTest {
   }
 
   @Test
-  public void testAttemptAuthenticationWhichThrowsAccessDeniedExceptionThenRethrowsAsCsrfValidationAuthException()
-    throws ServletException, IOException {
+  public void testAttemptAuthenticationWhichThrowsCsrfValidationExceptionThenRethrowsAsCsrfValidationAuthException() {
 
-    AccessDeniedException error = mock( AccessDeniedException.class );
+    CsrfValidationException error = mock( CsrfValidationException.class );
 
     try {
       testAttemptAuthenticationFailsThenThrowsCsrfValidationAuthException( error );
@@ -151,35 +153,7 @@ public class CsrfProtectedUsernamePasswordAuthenticationFilterTest {
   }
 
   @Test
-  public void testAttemptAuthenticationWhichThrowsIOExceptionThenRethrowsAsInternalAuthenticationServiceException()
-    throws ServletException, IOException {
-
-    IOException error = mock( IOException.class );
-
-    try {
-      testAttemptAuthenticationFailsThenThrowsCsrfValidationAuthException( error );
-      fail( "Should have thrown exception" );
-    } catch ( InternalAuthenticationServiceException ex ) {
-      assertSame( error, ex.getCause() );
-    }
-  }
-
-  @Test
-  public void testAttemptAuthenticationWhichThrowsServletExceptionThenRethrowsAsInternalAuthenticationServiceException()
-    throws ServletException, IOException {
-
-    ServletException error = mock( ServletException.class );
-
-    try {
-      testAttemptAuthenticationFailsThenThrowsCsrfValidationAuthException( error );
-      fail( "Should have thrown exception" );
-    } catch ( InternalAuthenticationServiceException ex ) {
-      assertSame( error, ex.getCause() );
-    }
-  }
-
-  @Test
-  public void testAttemptAuthenticationIsCalledWithCorrectOperationName() throws ServletException, IOException {
+  public void testAttemptAuthenticationIsCalledWithCorrectOperationName() throws CsrfValidationException {
 
     CsrfValidator csrfValidatorMock = mock( CsrfValidator.class );
 
