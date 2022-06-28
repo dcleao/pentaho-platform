@@ -20,8 +20,10 @@
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.impl.service.jaxrsv1.JaxrsHttpServletRequestWrapper;
 import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
 import com.hitachivantara.security.web.service.csrf.CsrfValidator;
+import com.sun.jersey.api.core.HttpContext;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.apache.commons.io.IOUtils;
@@ -57,6 +59,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -107,6 +110,13 @@ public class RepositoryResource extends AbstractJaxRSResource {
 
   @Nullable
   private CsrfValidator csrfValidator;
+
+  private HttpContext httpContext;
+
+  @Context
+  public void setHttpContext( HttpContext httpContext ) {
+    this.httpContext = httpContext;
+  }
 
   /**
    * Sets the CSRF validator used to validate requests w.r.t CSRF attacks.
@@ -986,8 +996,12 @@ public class RepositoryResource extends AbstractJaxRSResource {
         throw new IllegalArgumentException( ex );
       }
 
+      // Allows reading parameters, even if in the request body and despite JAX-RS already consumed it...
+      JaxrsHttpServletRequestWrapper jaxrsHttpServletRequest =
+        new JaxrsHttpServletRequestWrapper( httpServletRequest, httpContext );
+
       try {
-        csrfValidator.validateRequestOfOperation( httpServletRequest, implementationMethod, operationName );
+        csrfValidator.validateRequestOfOperation( jaxrsHttpServletRequest, implementationMethod, operationName );
       } catch ( CsrfValidationException ex ) {
         throw new WebApplicationException( ex, Status.FORBIDDEN );
       }

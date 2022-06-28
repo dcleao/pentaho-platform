@@ -22,6 +22,7 @@ package org.pentaho.platform.web.http.api.resources;
 
 import com.hitachivantara.security.web.service.csrf.CsrfValidationException;
 import com.hitachivantara.security.web.service.csrf.CsrfValidator;
+import com.sun.jersey.api.core.HttpContext;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.junit.After;
 import org.junit.Before;
@@ -69,6 +70,7 @@ public class RepositoryResourceTest {
   private IContentGenerator contentGeneratorMock;
   private MockedStatic<PentahoSystem> pentahoSystemStaticMock;
   private RepositoryResource repositoryResource;
+  private HttpContext httpContextMock;
 
   @Before
   public void setup() throws ServletException, IOException {
@@ -79,10 +81,12 @@ public class RepositoryResourceTest {
     csrfValidatorMock = mock( CsrfValidator.class );
     pluginManagerMock = mock( IPluginManager.class );
     contentGeneratorMock = mock( IContentGenerator.class );
+    httpContextMock = mock( HttpContext.class );
 
     repositoryResource = new RepositoryResource( repositoryMock, pluginManagerMock );
     repositoryResource.setHttpServletRequest( httpServletRequestMock );
     repositoryResource.setHttpServletResponse( httpServletResponseMock );
+    repositoryResource.setHttpContext( httpContextMock );
     repositoryResource.acceptableMediaTypes = Collections.emptyList();
 
     repositoryResource.setCsrfValidator( csrfValidatorMock );
@@ -156,8 +160,8 @@ public class RepositoryResourceTest {
         doThrow( error )
           .when( csrfValidatorMock )
           .validateRequestOfOperation(
-          any( HttpServletRequest.class ),
-          any( Method.class ),
+            any( HttpServletRequest.class ),
+            any( Method.class ),
             eq( operationName ) );
       } catch ( CsrfValidationException e ) {
         // Never happens at mock time.
