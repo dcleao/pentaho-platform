@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.enunciate.Facet;
 import org.codehaus.enunciate.jaxrs.ResponseCode;
@@ -54,6 +56,7 @@ import static javax.ws.rs.core.MediaType.WILDCARD;
  */
 @Facet( name = "Unsupported" )
 @Path( "/theme" )
+@ServiceId
 public class ThemeResource extends AbstractJaxRSResource {
 
   protected static final Log logger = LogFactory.getLog( ThemeResource.class );
@@ -103,6 +106,7 @@ public class ThemeResource extends AbstractJaxRSResource {
     @ResponseCode ( code = 403, condition = "Illegal set operation." ) } )
   @Produces( "text/plain" )
   @Facet ( name = "Unsupported" )
+  @MutationOperation
   public Response setTheme( String theme ) {
     IThemeManager themeManager = PentahoSystem.get( IThemeManager.class );
     List<String> ids = themeManager.getSystemThemeIds();

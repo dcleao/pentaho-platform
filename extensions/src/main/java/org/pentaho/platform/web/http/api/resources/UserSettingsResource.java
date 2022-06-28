@@ -20,6 +20,8 @@
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.codehaus.enunciate.Facet;
 import org.pentaho.platform.api.engine.IPentahoSession;
 import org.pentaho.platform.api.usersettings.IUserSettingService;
@@ -55,6 +57,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_XML;
  */
 @Path( "/user-settings" )
 @Facet( name = "Unsupported" )
+@ServiceId
 public class UserSettingsResource extends AbstractJaxRSResource {
 
   public UserSettingsResource() {
@@ -125,6 +128,7 @@ public class UserSettingsResource extends AbstractJaxRSResource {
   @Path( "{setting : .+}" )
   @Facet ( name = "Unsupported" )
   @Produces( { APPLICATION_JSON, APPLICATION_XML } )
+  @MutationOperation
   public Response setUserSetting( @PathParam( "setting" ) String setting, String settingValue ) {
     IUserSettingService settingsService = getUserSettingService();
 

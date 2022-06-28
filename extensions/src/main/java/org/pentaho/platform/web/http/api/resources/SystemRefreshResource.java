@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.codehaus.enunciate.Facet;
 import org.pentaho.platform.api.engine.ICacheManager;
 import org.pentaho.platform.api.engine.IPentahoSession;
@@ -47,6 +49,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
  */
 @Path( "/system/refresh" )
 @Facet( name = "Unsupported" )
+@ServiceId
 public class SystemRefreshResource extends AbstractJaxRSResource {
 
   /**
@@ -58,7 +61,8 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/globalActions" )
   @Facet ( name = "Unsupported" )
   @Produces( TEXT_PLAIN )
-  public Response executeGlobalActions() {
+  @MutationOperation
+  public Response refreshGlobalActions() {
     IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
     if ( canAdminister() ) {
       PentahoSystem.publish( pentahoSession, org.pentaho.platform.engine.core.system.GlobalListsPublisher.class
@@ -71,6 +75,7 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/metadata" )
   @Facet ( name = "Unsupported" )
   @Produces( TEXT_PLAIN )
+  @MutationOperation
   public String refreshMetadata() {
     String result = null;
     IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
@@ -86,6 +91,7 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/systemSettings" )
   @Facet ( name = "Unsupported" )
   @Produces( TEXT_PLAIN )
+  @MutationOperation
   public Response refreshSystemSettings() {
     IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
     if ( canAdminister() ) {
@@ -99,7 +105,8 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/mondrianSchemaCache" )
   @Produces( { MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON } )
   @Facet ( name = "Unsupported" )
-  public Response flushMondrianSchemaCache() {
+  @MutationOperation
+  public Response refreshMondrianSchemaCache() {
     if ( canAdminister() ) {
       IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
       if ( canAdminister() ) {
@@ -122,7 +129,8 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/mondrianSingleSchemaCache" )
   @Produces( { MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON } )
   @Facet ( name = "Unsupported" )
-  public Response flushMondrianSchemaCache( @QueryParam( "name" ) String name ) {
+  @MutationOperation
+  public Response refreshMondrianSchemaCache( @QueryParam( "name" ) String name ) {
     if ( canAdminister() ) {
       IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
       if ( canAdminister() ) {
@@ -144,7 +152,8 @@ public class SystemRefreshResource extends AbstractJaxRSResource {
   @Path( "/reportingDataCache" )
   @Produces( { MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON } )
   @Facet( name = "Unsupported" )
-  public Response purgeReportingDataCache() {
+  @MutationOperation
+  public Response refreshReportingDataCache() {
     if ( canAdminister() ) {
       ICacheManager cacheManager = PentahoSystem.get( ICacheManager.class );
       cacheManager.clearRegionCache( "report-dataset-cache" );

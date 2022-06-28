@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2019 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.pentaho.platform.api.email.IEmailConfiguration;
@@ -50,6 +52,7 @@ import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @org.codehaus.enunciate.XmlTransient
 @Path( "/emailconfig/" )
+@ServiceId
 public class EmailResource extends AbstractJaxRSResource {
   /**
    * The logger for this class
@@ -105,7 +108,8 @@ public class EmailResource extends AbstractJaxRSResource {
   @GET
   @Path( "/resetEmailConfig" )
   @Produces( { MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON } )
-  public Response deleteEmailConfig() {
+  @MutationOperation
+  public Response resetEmailConfig() {
     if ( canAdminister() ) {
       try {
         emailService.setEmailConfig( new EmailConfiguration() );

@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import com.sun.jersey.core.header.FormDataContentDisposition;
 import com.sun.jersey.multipart.FormDataParam;
 import org.apache.commons.logging.Log;
@@ -57,6 +59,7 @@ import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
  * @author tkafalas
  */
 @Path ( "/repo/publish" )
+@ServiceId
 public class RepositoryPublishResource {
 
   private static final Log logger = LogFactory.getLog( RepositoryPublishResource.class );
@@ -92,6 +95,7 @@ public class RepositoryPublishResource {
     @ResponseCode ( code = 403, condition = "Failure to publish the file due to permissions." ),
     @ResponseCode ( code = 500, condition = "Failure to publish the file due to a server error." ), } )
   @Facet( name = "Unsupported" )
+  @MutationOperation
   public Response writeFile( @FormDataParam ( "importPath" ) String pathId,
                              @FormDataParam ( "fileUpload" ) InputStream fileContents,
                              @FormDataParam ( "overwriteFile" ) Boolean overwriteFile,
@@ -145,6 +149,7 @@ public class RepositoryPublishResource {
     @ResponseCode ( code = 422, condition = "Failure to publish the file due to failed validation." ),
     @ResponseCode ( code = 500, condition = "Failure to publish the file due to a server error." ), } )
   @Facet( name = "Unsupported" )
+  @MutationOperation
   public Response writeFileWithEncodedName( @FormDataParam( "importPath" ) String pathId,
                                             @FormDataParam( "fileUpload" ) InputStream fileContents,
                                             @FormDataParam( "overwriteFile" ) Boolean overwriteFile,
@@ -164,6 +169,7 @@ public class RepositoryPublishResource {
     @ResponseCode ( code = 422, condition = "Failure to publish the file due to failed validation." ),
     @ResponseCode ( code = 500, condition = "Failure to publish the file due to a server error." ), } )
   @Facet( name = "Unsupported" )
+  @MutationOperation
   public Response writeFileWithEncodedNameWithOptions( @FormDataParam( "properties" ) String properties,
                                                        @FormDataParam( "importPath" ) String pathId,
                                                        @FormDataParam( "fileUpload" ) InputStream fileContents,

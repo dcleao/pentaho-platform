@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2021 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.enunciate.Facet;
@@ -108,6 +110,7 @@ import static javax.ws.rs.core.Response.Status.FORBIDDEN;
  * </ul>
  */
 @Path ( "/mantle/" )
+@ServiceId
 public class UserConsoleResource extends AbstractJaxRSResource {
 
   private static final Log logger = LogFactory.getLog( UserConsoleResource.class );
@@ -373,6 +376,7 @@ public class UserConsoleResource extends AbstractJaxRSResource {
   @POST
   @Path ( "/session-variable" )
   @Facet ( name = "Unsupported" )
+  @MutationOperation
   public Response setSessionVariable( @QueryParam ( "key" ) String key, @QueryParam ( "value" ) String value ) {
     if ( setSessionVarWhiteList.contains( key ) ) {
       IPentahoSession session = UserConsoleService.getPentahoSession();

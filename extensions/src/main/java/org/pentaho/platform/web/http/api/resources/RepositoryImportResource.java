@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2019 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
@@ -31,6 +31,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +55,7 @@ import com.sun.jersey.multipart.FormDataParam;
 import org.pentaho.platform.web.http.api.resources.utils.SystemUtils;
 
 @Path ( "/repo/files/import" )
+@ServiceId
 public class RepositoryImportResource {
 
   private static final Logger LOGGER = LogManager.getLogger( RepositoryImportResource.class );
@@ -161,6 +164,7 @@ public class RepositoryImportResource {
   @Consumes ( MediaType.MULTIPART_FORM_DATA )
   @Produces ( MediaType.TEXT_HTML )
   @Facet( name = "Unsupported" )
+  @MutationOperation
   public Response doPostImport( @FormDataParam ( "importDir" ) String importDir,
                                 @FormDataParam ( "fileUpload" ) InputStream fileUpload,
                                 @FormDataParam ( "overwriteFile" ) String overwriteFile,

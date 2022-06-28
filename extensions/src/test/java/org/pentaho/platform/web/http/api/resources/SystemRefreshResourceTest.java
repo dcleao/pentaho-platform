@@ -87,7 +87,7 @@ public class SystemRefreshResourceTest {
   public void flushMondrianSchemaCacheNotAdmin() {
     when( SystemUtils.canAdminister() ).thenReturn( false );
 
-    Response response = resource.flushMondrianSchemaCache( "schemaX" );
+    Response response = resource.refreshMondrianSchemaCache( "schemaX" );
     assertEquals( UNAUTHORIZED.getStatusCode(), response.getStatus() );
   }
 
@@ -95,7 +95,7 @@ public class SystemRefreshResourceTest {
   public void flushMondrianSchemaCacheIsAdmin() {
     when( SystemUtils.canAdminister() ).thenReturn( true );
 
-    Response response = resource.flushMondrianSchemaCache( "schemaX" );
+    Response response = resource.refreshMondrianSchemaCache( "schemaX" );
 
     assertEquals( OK.getStatusCode(), response.getStatus() );
     verify( olapService, times( 1 ) ).flush( session, "schemaX" );
@@ -107,7 +107,7 @@ public class SystemRefreshResourceTest {
     doThrow( IOlapServiceException.class ).when( olapService ).flush( session, "schemaX" );
 
     try {
-      resource.flushMondrianSchemaCache( "schemaX" );
+      resource.refreshMondrianSchemaCache( "schemaX" );
       fail();
     } catch ( IOlapServiceException e ) {
       verify( olapService, times( 1 ) ).flush( session, "schemaX" );

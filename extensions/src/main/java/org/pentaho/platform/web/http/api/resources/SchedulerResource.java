@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
@@ -44,6 +44,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.enunciate.Facet;
@@ -63,6 +65,7 @@ import org.pentaho.platform.web.http.messages.Messages;
  * The SchedulerResource service provides the means to create, read, update, delete, and list schedules and blockout periods.  Also provides the ability to control the status of schedules and the scheduler.
  */
 @Path ( "/scheduler" )
+@ServiceId
 public class SchedulerResource extends AbstractJaxRSResource {
 
   protected SchedulerService schedulerService;
@@ -121,6 +124,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 403, condition = "Cannot create schedules for the specified file." ),
       @ResponseCode ( code = 500, condition = "An error occurred while creating a schedule." )
     } )
+  @MutationOperation
   public Response createJob( JobScheduleRequest scheduleRequest ) {
     try {
       Job job = schedulerService.createJob( scheduleRequest );
@@ -184,6 +188,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 403, condition = "Cannot update schedules for the specified file." ),
       @ResponseCode ( code = 500, condition = "An error occurred while updating a schedule." )
     } )
+  @MutationOperation
   public Response updateJob( JobScheduleRequest scheduleRequest ) {
     try {
       Job job = schedulerService.updateJob( scheduleRequest );
@@ -231,6 +236,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 400, condition = "Invalid input." ),
       @ResponseCode ( code = 500, condition = "Invalid jobId." )
     } )
+  @MutationOperation
   public Response triggerNow( JobRequest jobRequest ) {
     try {
       Job job = schedulerService.triggerNow( jobRequest.getJobId() );
@@ -639,6 +645,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 200, condition = "Successfully started the server." ),
       @ResponseCode ( code = 500, condition = "An error occurred when resuming the scheduler." )
     } )
+  @MutationOperation
   public Response start() {
     try {
       String status = schedulerService.start();
@@ -674,6 +681,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 200, condition = "Successfully paused the server." ),
       @ResponseCode ( code = 500, condition = "An error occurred when pausing the scheduler." )
     } )
+  @MutationOperation
   public Response pause() {
     try {
       String status = schedulerService.pause();
@@ -709,6 +717,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 200, condition = "Successfully shut down the server." ),
       @ResponseCode ( code = 500, condition = "An error occurred when shutting down the scheduler." )
     } )
+  @MutationOperation
   public Response shutdown() {
     try {
       String status = schedulerService.shutdown();
@@ -790,6 +799,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 200, condition = "Successfully paused the job." ),
       @ResponseCode ( code = 500, condition = "Invalid jobId." )
     } )
+  @MutationOperation
   public Response pauseJob( JobRequest jobRequest ) {
     try {
       JobState state = schedulerService.pauseJob( jobRequest.getJobId() );
@@ -830,6 +840,7 @@ public class SchedulerResource extends AbstractJaxRSResource {
       @ResponseCode ( code = 200, condition = "Successfully resumed the job." ),
       @ResponseCode ( code = 500, condition = "Invalid jobId." )
     } )
+  @MutationOperation
   public Response resumeJob( JobRequest jobRequest ) {
     try {
       JobState state = schedulerService.resumeJob( jobRequest.getJobId() );

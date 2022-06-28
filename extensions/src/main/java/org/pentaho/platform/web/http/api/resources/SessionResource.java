@@ -14,12 +14,14 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
 package org.pentaho.platform.web.http.api.resources;
 
+import com.hitachivantara.security.web.model.servop.annotation.MutationOperation;
+import com.hitachivantara.security.web.model.servop.annotation.ServiceId;
 import org.codehaus.enunciate.Facet;
 import org.codehaus.enunciate.jaxrs.ResponseCode;
 import org.codehaus.enunciate.jaxrs.StatusCodes;
@@ -41,6 +43,7 @@ import static javax.ws.rs.core.MediaType.TEXT_PLAIN;
  * The SessionResource service lists the user's current workspace as well as the workspace folder path.
  */
 @Path ( "/session/" )
+@ServiceId
 public class SessionResource extends AbstractJaxRSResource {
 
   private static SessionService sessionService;
@@ -128,6 +131,7 @@ public class SessionResource extends AbstractJaxRSResource {
   @Path ( "/setredirect" )
   @Produces ( TEXT_PLAIN )
   @Facet ( name = "Unsupported" )
+  @MutationOperation
   public Response setredirect() {
     IPentahoSession pentahoSession = PentahoSessionHolder.getSession();
     pentahoSession.setAttribute( "redirect", true );
