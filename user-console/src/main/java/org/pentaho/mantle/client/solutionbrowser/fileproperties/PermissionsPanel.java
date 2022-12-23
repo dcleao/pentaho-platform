@@ -14,7 +14,7 @@
  * See the GNU Lesser General Public License for more details.
  *
  *
- * Copyright (c) 2002-2018 Hitachi Vantara. All rights reserved.
+ * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
  *
  */
 
@@ -35,7 +35,6 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HasHorizontalAlignment;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
-import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.xml.client.Document;
 import com.google.gwt.xml.client.Element;
 import com.google.gwt.xml.client.Node;
@@ -44,7 +43,6 @@ import com.google.gwt.xml.client.Text;
 import com.google.gwt.xml.client.XMLParser;
 import org.pentaho.gwt.widgets.client.dialogs.IDialogCallback;
 import org.pentaho.gwt.widgets.client.dialogs.MessageDialogBox;
-import org.pentaho.gwt.widgets.client.dialogs.PromptDialogBox;
 import org.pentaho.gwt.widgets.client.filechooser.RepositoryFile;
 import org.pentaho.mantle.client.messages.Messages;
 import org.pentaho.mantle.client.solutionbrowser.SolutionBrowserPanel;
@@ -245,14 +243,15 @@ public class PermissionsPanel extends FlexTable implements IFileModifier {
         final String contextURL = moduleBaseURL.substring( 0, moduleBaseURL.lastIndexOf( moduleName ) );
 
         if ( inheritsCheckBox.getValue() ) {
-          VerticalPanel vp = new VerticalPanel();
-          vp.add( new Label( Messages.getString( "permissionsWillBeLostQuestion" ) ) ); //$NON-NLS-1$
           // Get the state of add and remove button
           final boolean currRemoveButtonState = removeButton.isEnabled();
           final boolean currAddButtonState = addButton.isEnabled();
-          final PromptDialogBox permissionsOverwriteConfirm =
-              new PromptDialogBox(
-                  Messages.getString( "permissionsWillBeLostConfirmMessage" ), Messages.getString( "ok" ), Messages.getString( "cancel" ), false, true, vp ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          final MessageDialogBox permissionsOverwriteConfirm = new MessageDialogBox(
+            Messages.getString( "permissionsWillBeLostConfirmMessage" ),
+            Messages.getString( "permissionsWillBeLostQuestion" ),
+            false,
+            Messages.getString( "ok" ),
+            Messages.getString( "cancel" ) );
 
           final IDialogCallback callback = new IDialogCallback() {
 
@@ -282,10 +281,10 @@ public class PermissionsPanel extends FlexTable implements IFileModifier {
                     } else {
                       inheritsCheckBox.setValue( false );
                       refreshPermission();
-                      MessageDialogBox dialogBox =
-                          new MessageDialogBox(
-                              Messages.getString( "error" ), Messages.getString( "couldNotGetPermissions", response.getStatusText() ), //$NON-NLS-1$ //$NON-NLS-2$
-                              false, false, true );
+                      MessageDialogBox dialogBox = new MessageDialogBox(
+                        Messages.getString( "error" ),
+                        Messages.getString( "couldNotGetPermissions", response.getStatusText() ),
+                        false );
                       dialogBox.center();
                     }
                   }
@@ -294,28 +293,29 @@ public class PermissionsPanel extends FlexTable implements IFileModifier {
                   public void onError( Request request, Throwable exception ) {
                     inheritsCheckBox.setValue( false );
                     refreshPermission();
-                    MessageDialogBox dialogBox =
-                        new MessageDialogBox(
-                            Messages.getString( "error" ), Messages.getString( "couldNotGetPermissions", exception.getLocalizedMessage() ), //$NON-NLS-1$ //$NON-NLS-2$
-                            false, false, true );
+                    MessageDialogBox dialogBox = new MessageDialogBox(
+                      Messages.getString( "error" ),
+                      Messages.getString( "couldNotGetPermissions", exception.getLocalizedMessage() ),
+                      false );
                     dialogBox.center();
                   }
                 } );
               } catch ( RequestException e ) {
                 inheritsCheckBox.setValue( false );
                 refreshPermission();
-                MessageDialogBox dialogBox =
-                    new MessageDialogBox(
-                        Messages.getString( "error" ), Messages.getString( "couldNotGetPermissions", e.getLocalizedMessage() ), //$NON-NLS-1$ //$NON-NLS-2$
-                        false, false, true );
+                MessageDialogBox dialogBox = new MessageDialogBox(
+                  Messages.getString( "error" ),
+                  Messages.getString( "couldNotGetPermissions", e.getLocalizedMessage() ),
+                  false );
                 dialogBox.center();
               }
             }
           };
+
           permissionsOverwriteConfirm.setCallback( callback );
           permissionsOverwriteConfirm.center();
-
         }
+
         refreshPermission();
       }
     } );

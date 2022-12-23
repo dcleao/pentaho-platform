@@ -284,7 +284,7 @@ public class MantleApplication implements UserSettingsLoadedEventHandler, Mantle
    * @param message
    */
   private void showMessage( String title, String message ) {
-    MessageDialogBox dialog = new MessageDialogBox( title, message, true, false, true );
+    MessageDialogBox dialog = new MessageDialogBox( title, message, true );
     dialog.center();
   }
 
