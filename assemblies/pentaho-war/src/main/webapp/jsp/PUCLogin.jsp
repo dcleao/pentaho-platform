@@ -12,13 +12,13 @@
 * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 * See the GNU Lesser General Public License for more details.
 *
-* Copyright (c) 2002-2020 Hitachi Vantara..  All rights reserved.
+* Copyright (c) 2002-2023 Hitachi Vantara..  All rights reserved.
 --%>
 
 <%@ taglib prefix='c' uri='http://java.sun.com/jstl/core'%>
 <%@
     page language="java"
-    import="org.springframework.security.web.savedrequest.SavedRequest,
+         import="org.springframework.security.web.savedrequest.SavedRequest,
             org.pentaho.platform.web.http.security.PreventBruteForceException,
             org.pentaho.platform.engine.core.system.PentahoSystem,
             org.pentaho.platform.util.messages.LocaleHelper,
@@ -107,8 +107,8 @@
     }
     if ( !"desktop".equalsIgnoreCase( request.getParameter( "mode") ) ) {
       if ( ua.contains( "ipad" )   || ua.contains( "ipod" )    ||
-           ua.contains( "iphone" ) || ua.contains( "android" ) ||
-           "mobile".equalsIgnoreCase( request.getParameter( "mode" ) ) ) {
+          ua.contains( "iphone" ) || ua.contains( "android" ) ||
+          "mobile".equalsIgnoreCase( request.getParameter( "mode" ) ) ) {
 
         IPluginManager pluginManager = PentahoSystem.get( IPluginManager.class, PentahoSessionHolder.getSession() );
         List<String> pluginIds = pluginManager.getRegisteredPlugins();
@@ -132,9 +132,9 @@
                   Map.Entry entry = (Map.Entry) it.next();
                   mobileRedirect += entry.getKey() + "=" + entry.getValue();
                   it.remove();
-                    if ( it.hasNext() ){
-                      mobileRedirect += "&";
-                    }
+                  if ( it.hasNext() ){
+                    mobileRedirect += "&";
+                  }
                 }
               }
             }
@@ -196,11 +196,11 @@
 
         <div id="login-title"><%=Messages.getInstance().getString("UI.PUC.LOGIN.WELCOME")%></div>
         <div id="login-messages" class="none-login-message-visible">
-          <div id="loginError" class="login-error-message">
+          <div id="loginError" class="login-error-message" role="alert">
             <div class="login-error-icon"></div>
             <div class="login-error-text"><%=Messages.getInstance().getString("UI.PUC.LOGIN.ERROR")%></div>
           </div>
-          <div id="loginBlocked" class="login-error-message">
+          <div id="loginBlocked" class="login-error-message" role="alert">
             <div class="login-error-icon"></div>
             <div class="login-error-text"><%=Messages.getInstance().getString("UI.PUC.LOGIN.BLOCKED")%></div>
           </div>
@@ -388,15 +388,21 @@
   }
 
   function showOneErrorMessage(divId) {
-    var msgs = document.getElementsByClassName('login-error-message');
+    // Copy the collection, as it is live, and adding/removing from the document would affect iteration.
+    var msgs = Array.prototype.slice.apply(document.getElementsByClassName('login-error-message'));
+
     var isSomeMessageVisible = false;
     if(msgs && msgs.length > 0) {
       for (var i = 0; i < msgs.length; i++) {
-        if(msgs[i].id === divId) {
-          msgs[i].style.display='inline-flex';
+        var msg = msgs[i];
+        if(msg.id === divId) {
+          var msgParent = msg.parentElement;
+          msgParent.removeChild(msg);
+          msgParent.appendChild(msg);
+          msg.style.display='inline-flex';
           isSomeMessageVisible = true;
         } else {
-          msgs[i].style.display='none';
+          msg.style.display='none';
         }
       }
     }
