@@ -101,7 +101,7 @@ public class ImportDialog extends PromptDialogBox {
     super( Messages.getString( "import" ), Messages.getString( "ok" ), Messages.getString( "cancel" ), false, true ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
     setResponsive( true );
-    setSizingMode( DialogSizingMode.SIZE_TO_CONTENT );
+    setSizingMode( DialogSizingMode.FILL_VIEWPORT_WIDTH );
     setWidthCategory( DialogWidthCategory.EXTRA_SMALL );
     setMinimumHeightCategory( DialogMinimumHeightCategory.CONTENT );
 
@@ -251,6 +251,8 @@ public class ImportDialog extends PromptDialogBox {
     rootPanel.add( spacer );
 
     DisclosurePanel disclosurePanel = new DisclosurePanel( Messages.getString( "advancedOptions" ) );
+    disclosurePanel.addStyleName( "import-dialog-disclosure-panel" );
+    disclosurePanel.addStyleName( "gwt-v-panel" );
     disclosurePanel.getHeader().setStyleName( "gwt-Label" );
     disclosurePanel.setVisible( allowAdvancedDialog );
     HorizontalPanel mainPanel = new HorizontalFlexPanel();
