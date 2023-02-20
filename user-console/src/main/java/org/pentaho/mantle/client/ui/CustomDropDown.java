@@ -21,6 +21,8 @@
 package org.pentaho.mantle.client.ui;
 
 import com.google.gwt.aria.client.Roles;
+import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Style.Display;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -106,11 +108,33 @@ public class CustomDropDown extends HorizontalPanel implements HasText {
           if ( (char) nativeEvent.getKeyCode() == KeyCodes.KEY_ESCAPE ) {
             event.cancel();
             hide();
+          } else if ( nativeEvent.getKeyCode() == KeyCodes.KEY_TAB ) {
+            nativeEvent.preventDefault();
+            hide();
+            if ( nativeEvent.getShiftKey() ) {
+              tabPrevious();
+            } else {
+              tabNext();
+            }
           }
           return;
         }
       }
-    };
+    }
+
+    private void tabNext() {
+      Element elem = ElementUtils.findNextKeyboardFocusableElement( CustomDropDown.this.getElement() );
+      if ( elem != null ) {
+        elem.focus();
+      }
+    }
+
+    private void tabPrevious() {
+      Element elem = ElementUtils.findPreviousKeyboardFocusableElement( CustomDropDown.this.getElement() );
+      if ( elem != null ) {
+        elem.focus();
+      }
+    }
   };
 
   private MenuBar menuBar;
