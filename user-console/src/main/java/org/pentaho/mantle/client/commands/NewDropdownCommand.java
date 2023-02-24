@@ -39,7 +39,6 @@ import com.google.gwt.user.client.Event.NativePreviewEvent;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.FocusPanel;
-import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -218,7 +217,7 @@ public class NewDropdownCommand extends AbstractCommand {
 
             Element firstButtonElement = ElementUtils.findFirstKeyboardFocusableDescendant( popup.getElement() );
             if ( firstButtonElement != null ) {
-              firstButtonElement.focus();
+              ElementUtils.setFocus( firstButtonElement );
             }
           } else {
             MessageDialogBox dialogBox =
