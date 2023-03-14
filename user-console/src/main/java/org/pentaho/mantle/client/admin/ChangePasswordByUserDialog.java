@@ -31,6 +31,8 @@ import com.google.gwt.user.client.ui.Panel;
 import com.google.gwt.user.client.ui.PasswordTextBox;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import org.pentaho.gwt.widgets.client.panel.HorizontalFlexPanel;
+import org.pentaho.gwt.widgets.client.panel.VerticalFlexPanel;
 import org.pentaho.gwt.widgets.client.utils.string.StringUtils;
 import org.pentaho.mantle.client.messages.Messages;
 import org.pentaho.mantle.client.ui.xul.MantleController;
@@ -76,9 +78,11 @@ public class ChangePasswordByUserDialog extends GwtDialog implements ServiceCall
     this.controller = controller;
   }
 
+
   @Override
   public Panel getButtonPanel() {
-    HorizontalPanel hp = new HorizontalPanel();
+    HorizontalFlexPanel hp = new HorizontalFlexPanel();
+    hp.addRowStyleName( "inner-button-panel" );
     hp.add( acceptBtn );
     hp.setCellWidth( acceptBtn, "100%" );
     hp.setCellHorizontalAlignment( acceptBtn, HorizontalPanel.ALIGN_RIGHT );
@@ -89,7 +93,7 @@ public class ChangePasswordByUserDialog extends GwtDialog implements ServiceCall
   @Override
   public Panel getDialogContents() {
 
-    VerticalPanel vp = new VerticalPanel();
+    VerticalPanel vp = new VerticalFlexPanel();
 
     Label oldPasswordLabel = new Label( Messages.getString( "oldPassword" ) + ":" );
     oldPasswordTextBox.setTitle( oldPasswordLabel.getText() );
@@ -106,6 +110,8 @@ public class ChangePasswordByUserDialog extends GwtDialog implements ServiceCall
     reTypePasswordTextBox.setTitle( reTypePasswordLabel.getText() );
     vp.add( reTypePasswordLabel );
     vp.add( reTypePasswordTextBox );
+
+    dialog.setResponsive( true );
 
     return vp;
   }
