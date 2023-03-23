@@ -1286,18 +1286,69 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 }
 
 #generated-content-location {
-  width: 350px;
+  /*width: 350px;*/
   border-radius: 4px 0 0 4px;
 }
 
 .schedule-label {
-  margin-top: 15px;
-  margin-bottom: 5px;
+  margin-top: unset;
+  margin-bottom: unset;
   color: #666666;
 }
 
+.new-schedule-dialog .schedule-dialog-content > table > tbody {
+  gap: var(--dialog-vertical-gap);
+}
+
+.schedule-output-location-dialog > div > * {
+  height: auto !important;
+}
+
+.schedule-output-location-dialog .dialog-content > table > tbody {
+  gap: var(--dialog-vertical-gap);
+}
+
+.schedule-output-location-dialog .dialog-content > table > tbody > tr {
+  flex: none;
+}
+
 #schedule-name-input {
-  width: 250px;
+  width: unset;
+  margin-bottom: unset;
+}
+
+.schedule-timestamp-listbox {
+  margin-left: unset;
+  margin-bottom: unset;
+  min-width: 200px;
+  width: unset;
+}
+
+.schedule-name-panel > tbody > tr {
+  flex-wrap: wrap;
+  gap: var(--dialog-vertical-gap);
+}
+
+.schedule-name-panel > tbody > tr > td:first-child > * {
+  flex: auto;
+}
+
+.schedule-name-panel > tbody > tr > td:last-child {
+  flex: none;
+}
+
+.schedule-caption-panel {
+  margin-top: unset;
+}
+
+button#schedule-dialog-select-button {
+  flex: auto;
+}
+
+.dialog-content #generated-content-location {
+  flex: auto;
+  margin-bottom: unset;
+  width: 100% !important;
 }
 
 .schedule-dialog-button-panel {
@@ -1555,4 +1606,8 @@ hr {
   font-family: opensansregular, Helvetica, Arial, Sans serif;
   font-weight: normal;
   font-size: 14px;
+}
+
+.schedule-params-dialog > div > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > table {
+  padding: 0 var(--dialog-padding) var(--dialog-padding);
 }
