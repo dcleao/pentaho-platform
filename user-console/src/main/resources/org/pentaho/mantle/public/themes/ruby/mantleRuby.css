@@ -1287,7 +1287,7 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 
 #generated-content-location {
   /*width: 350px;*/
-  border-radius: 4px 0 0 4px;
+  border-radius: 4px;
 }
 
 .schedule-label {
@@ -1296,16 +1296,8 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
   color: #666666;
 }
 
-.new-schedule-dialog .schedule-dialog-content > table > tbody {
-  gap: var(--dialog-vertical-gap);
-}
-
 .schedule-output-location-dialog > div > * {
   height: auto !important;
-}
-
-.schedule-output-location-dialog .dialog-content > table > tbody {
-  gap: var(--dialog-vertical-gap);
 }
 
 .schedule-output-location-dialog .dialog-content > table > tbody > tr {
@@ -1326,7 +1318,8 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 
 .schedule-name-panel > tbody > tr {
   flex-wrap: wrap;
-  gap: var(--dialog-vertical-gap);
+  gap: var(--layout-gap-v) var(--layout-gap-h);
+  display: flex !important;
 }
 
 .schedule-name-panel > tbody > tr > td:first-child > * {
@@ -1608,6 +1601,10 @@ hr {
   font-size: 14px;
 }
 
-.schedule-params-dialog > div > table > tbody > tr:nth-child(2) > td:nth-child(2) > div > table {
+.schedule-params-dialog {
   padding: 0 var(--dialog-padding) var(--dialog-padding);
+}
+
+.schedule-params-dialog > div > table > tbody > tr:first-child > td:nth-child(2) > div > div {
+  padding: var(--dialog-padding) 0;
 }
