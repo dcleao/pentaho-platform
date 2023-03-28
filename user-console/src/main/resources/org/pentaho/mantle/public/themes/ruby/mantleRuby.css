@@ -1286,7 +1286,8 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 }
 
 #generated-content-location {
-  /*width: 350px;*/
+  flex: auto;
+  margin-bottom: unset;
   border-radius: 4px;
 }
 
@@ -1321,16 +1322,6 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 
 .schedule-caption-panel {
   margin-top: unset;
-}
-
-button#schedule-dialog-select-button {
-  flex: auto;
-}
-
-.dialog-content #generated-content-location {
-  flex: auto;
-  margin-bottom: unset;
-  width: 100% !important;
 }
 
 .schedule-dialog-button-panel {
