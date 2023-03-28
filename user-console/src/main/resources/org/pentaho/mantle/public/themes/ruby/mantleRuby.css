@@ -1307,6 +1307,7 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
 #schedule-name-input {
   width: unset;
   margin-bottom: unset;
+  flex: 4 1 0;
 }
 
 .schedule-timestamp-listbox {
@@ -1316,18 +1317,9 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
   width: unset;
 }
 
-.schedule-name-panel > tbody > tr {
+.schedule-name-panel {
   flex-wrap: wrap;
-  gap: var(--layout-gap-v) var(--layout-gap-h);
-  display: flex !important;
-}
-
-.schedule-name-panel > tbody > tr > td:first-child > * {
-  flex: auto;
-}
-
-.schedule-name-panel > tbody > tr > td:last-child {
-  flex: none;
+  --flex-items: 1 1 0;
 }
 
 .schedule-caption-panel {
