@@ -1296,11 +1296,8 @@ div#customDropdownPopupMajor .gwt-MenuBar-vertical .gwt-MenuItem:hover:not(.gwt-
   color: #666666;
 }
 
-.schedule-output-location-dialog > div > * {
-  height: auto !important;
-}
-
-.schedule-output-location-dialog .dialog-content > table > tbody > tr {
+/* NOTE: --flex-items is not working for contained Flex Panels */
+.schedule-output-location-dialog .dialog-content > table > tbody > tr > td > * {
   flex: none;
 }
 
