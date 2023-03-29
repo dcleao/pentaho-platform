@@ -230,6 +230,7 @@ public class ContentCleanerPanel extends DockPanel implements ISysAdminPanel {
               scheduleLabelPanel.add( new Label( Messages.getString( "deleteGeneratedFilesOlderThan" ), false ) );
               scheduleLabelPanel.add( scheduleTextBox );
               scheduleLabelPanel.add( new Label( Messages.getString( "daysUsingTheFollowingRules" ), false ) );
+
               ScheduleRecurrenceDialog editSchedule =
                   new ScheduleRecurrenceDialog( null, jsJob, callback, false, false,
                       AbstractWizardDialog.ScheduleDialogType.SCHEDULER );

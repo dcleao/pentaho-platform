@@ -38,9 +38,6 @@
   padding: 0px 0px 10px 0px;
 }
 
-.schedule-dialog-content {
-}
-
 .schedulerPerspective-wrapper {
   margin: 0 auto;
 }
@@ -1579,12 +1576,4 @@ hr {
   font-family: opensansregular, Helvetica, Arial, Sans serif;
   font-weight: normal;
   font-size: 14px;
-}
-
-.schedule-params-dialog {
-  padding: 0 var(--dialog-padding) var(--dialog-padding);
-}
-
-.schedule-params-dialog > div > table > tbody > tr:first-child > td:nth-child(2) > div > div {
-  padding: var(--dialog-padding) 0;
 }
