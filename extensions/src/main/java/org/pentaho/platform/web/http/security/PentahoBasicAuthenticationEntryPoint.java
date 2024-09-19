@@ -1,5 +1,4 @@
 /*!
- *
  * This program is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License, version 2.1 as published by the Free Software
  * Foundation.
@@ -13,9 +12,7 @@
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  *
- *
- * Copyright (c) 2002-2022 Hitachi Vantara. All rights reserved.
- *
+ * Copyright (c) 2002-2024 Hitachi Vantara. All rights reserved.
  */
 
 package org.pentaho.platform.web.http.security;
@@ -29,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+// Class not currently needed. Keeping it not deprecated for now, in case a new need arises.
 public class PentahoBasicAuthenticationEntryPoint extends BasicAuthenticationEntryPoint implements
   AuthenticationEntryPoint, InitializingBean {
 
@@ -45,7 +43,7 @@ public class PentahoBasicAuthenticationEntryPoint extends BasicAuthenticationEnt
     // authentication.
     // In order to prevent a second authentication, we must clear the session end cookie before sending the 401
     // status code.
-    PentahoBasicProcessingFilter.clearSessionFlushedCookie( request, response );
+    // PentahoBasicProcessingFilter.clearBasicAuthSessionCookie( request, response );
 
     super.commence( request, response, authException );
   }

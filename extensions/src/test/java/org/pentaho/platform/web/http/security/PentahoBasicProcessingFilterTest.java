@@ -46,7 +46,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.pentaho.platform.web.http.security.PentahoBasicProcessingFilter.SESSION_FLUSHED_COOKIE_NAME;
+import static org.pentaho.platform.web.http.security.PentahoBasicProcessingFilter.BASIC_AUTH_SESSION_COOKIE_NAME;
 import static org.pentaho.platform.web.http.security.PentahoBasicProcessingFilter.SESSION_ID_COOKIE_NAME;
 
 public class PentahoBasicProcessingFilterTest {
@@ -82,11 +82,11 @@ public class PentahoBasicProcessingFilterTest {
     return requestMock;
   }
 
-  private Cookie createSessionFlushedCookieMock() {
+  private Cookie createBasicAuthSessionCookieMock() {
 
     // A submitted cookie only comes with this information.
     Cookie sessionFlushedCookieMock = mock( Cookie.class );
-    when( sessionFlushedCookieMock.getName() ).thenReturn( SESSION_FLUSHED_COOKIE_NAME );
+    when( sessionFlushedCookieMock.getName() ).thenReturn( BASIC_AUTH_SESSION_COOKIE_NAME );
     when( sessionFlushedCookieMock.getValue() ).thenReturn( "true" );
 
     return sessionFlushedCookieMock;
@@ -161,7 +161,7 @@ public class PentahoBasicProcessingFilterTest {
     configureRequestMockWithInvalidRequestedSessionId( requestMock );
     configureRequestMockWithBasicHttpAuthPresent( requestMock );
 
-    Cookie sessionFlushedCookieMock = createSessionFlushedCookieMock();
+    Cookie sessionFlushedCookieMock = createBasicAuthSessionCookieMock();
     when( requestMock.getCookies() ).thenReturn( new Cookie[] { sessionFlushedCookieMock } );
 
     HttpServletResponse responseMock = mock( HttpServletResponse.class );
@@ -271,7 +271,7 @@ public class PentahoBasicProcessingFilterTest {
 
     configureRequestMockWithBasicHttpAuthPresent( requestMock );
 
-    Cookie sessionFlushedCookieMock = createSessionFlushedCookieMock();
+    Cookie sessionFlushedCookieMock = createBasicAuthSessionCookieMock();
     when( requestMock.getCookies() ).thenReturn( new Cookie[] { sessionFlushedCookieMock } );
 
     HttpServletResponse responseMock = mock( HttpServletResponse.class );
@@ -296,7 +296,7 @@ public class PentahoBasicProcessingFilterTest {
 
     configureRequestMockWithBasicHttpAuthPresent( requestMock );
 
-    Cookie sessionFlushedCookieMock = createSessionFlushedCookieMock();
+    Cookie sessionFlushedCookieMock = createBasicAuthSessionCookieMock();
     when( requestMock.getCookies() ).thenReturn( new Cookie[] { sessionFlushedCookieMock } );
 
     HttpServletResponse responseMock = mock( HttpServletResponse.class );
