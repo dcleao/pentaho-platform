@@ -45,7 +45,7 @@ public class PentahoBasicAuthenticationEntryPoint extends BasicAuthenticationEnt
     // authentication.
     // In order to prevent a second authentication, we must clear the session end cookie before sending the 401
     // status code.
-    PentahoBasicProcessingFilter.clearSessionFlushedCookie( request, response );
+    // PentahoBasicProcessingFilter.clearSessionFlushedCookie( request, response );
 
     super.commence( request, response, authException );
   }

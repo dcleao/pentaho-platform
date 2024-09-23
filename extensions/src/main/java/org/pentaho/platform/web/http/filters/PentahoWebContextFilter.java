@@ -72,6 +72,7 @@ public class PentahoWebContextFilter implements Filter {
   private static final String REQUIREJS_LOCATION = "content/common-ui/resources/web/require.js";
   private static final String REQUIREJS_CONFIG_LOCATION = "content/common-ui/resources/web/require-cfg.js";
   private static final String REQUIREJS_INIT_LOCATION = "osgi/requirejs-manager/js/require-init.js";
+  private static final String POST_BASIC_AUTH_LOCATION = "js/postAuth.js";
 
   static final String DEFAULT_OSGI_BRIDGE = "osgi/";
   static final String DEFAULT_SERVICES_ROOT = "cxf/";
@@ -174,6 +175,12 @@ public class PentahoWebContextFilter implements Filter {
 
         // Let all plugins contribute to the RequireJS config
         printResourcesForContext( REQUIRE_JS, out, httpRequest, false );
+
+        // On first "UI" request after a basic auth detected, emit the script that busts the browser's credentials cache.
+        String basicAuthFlag = (String) httpRequest.getSession().getAttribute( "BasicAuth" );
+        if ( basicAuthFlag != null && basicAuthFlag.equals( "true" ) ) {
+          printDocumentWrite( out, POST_BASIC_AUTH_LOCATION );
+        }
 
         byte[] requireScriptBytes = THREAD_LOCAL_REQUIRE_SCRIPT.get();
         if ( requireScriptBytes == null ) {

@@ -36,7 +36,7 @@ import java.io.IOException;
  * have the valid Basic-Auth credentials, but is denied. A second request will then be sent with known fake credentials.
  * This second request is accepted, causing the browser to replace the old good credentials with bad. The next time the
  * browser's session is timed out the new bad credentials will fail.
- * 
+ *
  * User: nbaker Date: 8/16/13
  */
 public class PentahoBasicPostProcessingFilter implements Filter {
@@ -57,11 +57,12 @@ public class PentahoBasicPostProcessingFilter implements Filter {
     HttpServletResponse response = (HttpServletResponse) servletResponse;
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     String authorization = request.getHeader( "Authorization" );
-    if ( authorization != null && authorization.startsWith( "Basic" )
-        && authorization.equals( "Basic AAAAAAAAAAAAAAAAAAA=" ) ) {
+    // User: "___", Password: "___", "___:___" encoded in base 64.
+    if ( authorization != null && authorization.equals( "Basic X19fOl9fXw==" ) ) {
       response.setStatus( 200 );
       return;
     }
+
     response.sendError( 401, "Unauthorized" );
     response.addHeader( "WWW-Authenticate", "basic realm=\"Pentaho Realm\"" );
   }
