@@ -17,6 +17,15 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The {@code IAuthorizationUser} interface represents a user in the authorization system.
+ * It provides methods to access the user's name, attributes, and roles.
+ * <p>
+ * The username is a unique identifier for the user, while attributes are key-value pairs.
+ * <p>
+ * Implementations of this interface must ensure that the methods {@link Object#equals(Object)} and
+ * {@link Object#hashCode()} use the username as the identifying property.
+ */
 public interface IAuthorizationUser {
   @NonNull
   String getName();

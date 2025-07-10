@@ -17,9 +17,9 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 /**
  * The {@code IAuthorizationContext} interface defines the context for an authorization evaluation process initiated by
  * {@link IAuthorizationRulesEngine}. The context is passed as an argument to evaluation rules methods, such as
- * {@link IAuthorizationRule#evaluate(IAuthorizationUser, String, IAuthorizationContext)}.
+ * {@link IAuthorizationRule#evaluate(IAuthorizationUser, String, IAuthorizationEvaluationContext)}.
  */
-public interface IAuthorizationContext {
+public interface IAuthorizationEvaluationContext {
 
   /**
    * Gets the options for the authorization evaluation.

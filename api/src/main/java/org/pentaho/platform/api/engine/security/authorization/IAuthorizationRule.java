@@ -16,6 +16,13 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 import java.util.Optional;
 
+/**
+ * The {@code IAuthorizationRule} interface defines a rule for evaluating whether a user can perform a specific action.
+ * Authorization rules provide a means to distribute the authorization logic across different components.
+ * An authorization engine combines the results of multiple authorization rules to determine if a user is authorized to
+ * perform an action. Authorization rules may provide grant or deny decisions for only certain cases, abstaining in
+ * others.
+ */
 public interface IAuthorizationRule {
   /**
    * Evaluates if a user can perform an action.
@@ -37,6 +44,6 @@ public interface IAuthorizationRule {
     @NonNull IAuthorizationUser user,
     // ??? Not using IAuthorizationAction here to support evaluating unregistered actions
     @NonNull String actionName,
-    @NonNull IAuthorizationContext context )
+    @NonNull IAuthorizationEvaluationContext context )
     throws AuthorizationEvaluationException;
 }

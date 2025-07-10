@@ -17,7 +17,7 @@ package org.pentaho.platform.api.engine.security.authorization;
  * evaluation process. This indicates that the evaluation logic has entered an infinite loop or recursive cycle, which
  * should not happen in a well-configured authorization system. A cycle occurs when an authorization rule evaluates
  * the permission for a user to perform an action, using the
- * {@link IAuthorizationContext#evaluate(IAuthorizationUser, String)} method, for a combination of user and action which
+ * {@link IAuthorizationEvaluationContext#evaluate(IAuthorizationUser, String)} method, for a combination of user and action which
  * is already being evaluated in the current evaluation process.
  */
 public class AuthorizationEvaluationCycleException extends AuthorizationEvaluationException {
