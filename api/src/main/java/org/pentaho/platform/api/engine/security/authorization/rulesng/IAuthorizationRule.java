@@ -10,40 +10,36 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-
-import java.util.Optional;
 
 /**
  * The {@code IAuthorizationRule} interface defines a rule for evaluating whether a user can perform a specific action.
  * Authorization rules provide a means to distribute the authorization logic across different components.
  * An authorization engine combines the results of multiple authorization rules to determine if a user is authorized to
- * perform an action. Authorization rules may provide grant or deny decisions for only certain cases, abstaining in
- * others.
+ * perform an action.
+ * <p>
+ * Implementations of this interface should be thread-safe.
+ * <p>
+ * Implementations should override the {@link Object#toString()} method to provide a meaningful description of the rule,
+ * appropriate for including in exception messages, and for logging and debugging purposes.
  */
+@FunctionalInterface
 public interface IAuthorizationRule {
   /**
-   * Evaluates if a user can perform an action.
-   * <p>
-   * Returns an empty {@link Optional} to abstain.
-   * Returns an optional with a present {@link AuthorizationEvaluationResult} value for granting or denying permission.
+   * Evaluates if a specified authorization request is allowed, under a given authorization evaluation context.
    *
-   * @param user       The user for whom the authorization is being evaluated.
-   * @param actionName The name of the action (e.g. {@code org.pentaho.di.repository.create}).
-   * @param context    The authorization context to evaluate against.
-   * @return The optional result of the rule evaluation.
-   * @throws IllegalArgumentException              if the action name is {@code null} or empty.
+   * @param request The authorization evaluation request.
+   * @param context The authorization context to evaluate against.
+   * @return The result of the rule evaluation.
    * @throws AuthorizationEvaluationCycleException if an evaluation cycle is detected for the specified user and
    *                                               action name.
    * @throws AuthorizationEvaluationException      if an evaluation error occurs during the evaluation process.
    */
   @NonNull
-  Optional<AuthorizationEvaluationResult> evaluate(
-    @NonNull IAuthorizationUser user,
-    // ??? Not using IAuthorizationAction here to support evaluating unregistered actions
-    @NonNull String actionName,
+  AuthorizationEvaluationResult evaluate(
+    @NonNull AuthorizationEvaluationRequest request,
     @NonNull IAuthorizationEvaluationContext context )
     throws AuthorizationEvaluationException;
 }

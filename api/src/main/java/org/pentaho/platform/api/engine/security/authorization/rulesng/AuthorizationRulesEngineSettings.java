@@ -10,38 +10,26 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.engine.security.authorization.rulesng;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.pentaho.platform.api.engine.security.authorization.AuthorizationEvaluationResult;
-
-import java.util.Objects;
 
 public class AuthorizationRulesEngineSettings {
   @NonNull
   private static final AuthorizationRulesEngineSettings DEFAULT = new AuthorizationRulesEngineSettings();
 
-  @NonNull
-  private final AuthorizationEvaluationResult defaultResult;
-
   private final boolean ignoresRuleErrors;
 
   public AuthorizationRulesEngineSettings() {
-    this( AuthorizationEvaluationResult.getDeniedByDefaultResult(), false );
+    this( false );
   }
 
-  public AuthorizationRulesEngineSettings( @NonNull AuthorizationEvaluationResult defaultResult,
-                                           boolean ignoresRuleErrors ) {
-    this.defaultResult = Objects.requireNonNull( defaultResult );
+  public AuthorizationRulesEngineSettings( boolean ignoresRuleErrors ) {
     this.ignoresRuleErrors = ignoresRuleErrors;
   }
 
   public static AuthorizationRulesEngineSettings getDefault() {
     return DEFAULT;
-  }
-
-  @NonNull public AuthorizationEvaluationResult getDefaultResult() {
-    return defaultResult;
   }
 
   public boolean getIgnoresRuleErrors() {

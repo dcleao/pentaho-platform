@@ -10,7 +10,7 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 /**
  * The {@code AuthorizationEvaluationOptions} class encapsulates options for the authorization evaluation process.
@@ -37,16 +37,7 @@ public class AuthorizationEvaluationOptions {
    * Indicates whether the evaluation results should include reasons.
    * <p>
    * When set to {@code true}, the evaluation result should include reasons for their decision.
-   * All rules that support a grant or deny decision should include reasons for their decision.
-   * When combining reasons from multiple rules, the following rules apply:
-   * <ul>
-   *   <li>If the result is granted, only and all the reasons for the granted decision will be included.</li>
-   *   <li>If the result is denied, only and all reasons for the denied decision will be included.</li>
-   * </ul>
-   * <p>
-   * When set to {@code false}, the evaluation result may still include reasons. However, in general, these will be
-   * incomplete, given that, for efficiency reasons, not all rules are consulted and evaluation is finished as soon
-   * as the decision is settled.
+   * Rules should include reasons in their authorization evaluation results.
    *
    * @return {@code true} if reasons should be included; {@code false}, otherwise.
    */

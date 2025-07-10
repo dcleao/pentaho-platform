@@ -10,7 +10,7 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -67,5 +67,14 @@ public class AuthorizationEvaluationReason {
   @NonNull
   public String getDescription() {
     return description;
+  }
+
+  // Used for debugging and logging purposes.
+  @Override
+  public String toString() {
+    return String.format(
+      "AuthorizationEvaluationReason{code='%s', description='%s'}'",
+      code,
+      description );
   }
 }

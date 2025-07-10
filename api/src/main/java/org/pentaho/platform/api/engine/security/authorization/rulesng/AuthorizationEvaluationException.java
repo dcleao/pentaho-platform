@@ -10,7 +10,7 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 /**
  * The {@code AuthorizationEvaluationException} class is the base exception class for exceptions thrown when an error

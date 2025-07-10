@@ -10,7 +10,7 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -20,28 +20,26 @@ import edu.umd.cs.findbugs.annotations.NonNull;
  * {@link IAuthorizationRule#evaluate(IAuthorizationUser, String, IAuthorizationEvaluationContext)}.
  */
 public interface IAuthorizationEvaluationContext {
-
   /**
    * Gets the options for the authorization evaluation.
+   *
    * @return The options for the authorization evaluation.
    */
   @NonNull
   AuthorizationEvaluationOptions getOptions();
 
+  @NonNull
+  IAuthorizationRulesEngine getEngine();
+
   /**
-   * Evaluates if a user can perform an action.
+   * Evaluates if a specified authorization request is allowed, in the current context.
    *
-   * @param user       The user for whom the authorization is being evaluated.
-   * @param actionName The name of the action (e.g. {@code org.pentaho.di.repository.create}).
+   * @param request The authorization evaluation request.
    * @return The result of the evaluation.
-   * @throws IllegalArgumentException              if the action name is {@code null} or empty.
-   * @throws AuthorizationEvaluationCycleException if an evaluation cycle is detected for the specified user and
-   *                                               action name.
+   * @throws AuthorizationEvaluationCycleException if an evaluation cycle is detected for the specified request.
    * @throws AuthorizationEvaluationException      if an evaluation error occurs during the evaluation process.
    */
   @NonNull
-  AuthorizationEvaluationResult evaluate(
-    @NonNull IAuthorizationUser user,
-    @NonNull String actionName )
+  AuthorizationEvaluationResult evaluate( @NonNull AuthorizationEvaluationRequest request )
     throws AuthorizationEvaluationException;
 }

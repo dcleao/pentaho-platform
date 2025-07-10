@@ -10,7 +10,7 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
@@ -25,6 +25,9 @@ import java.util.Set;
  * <p>
  * Implementations of this interface must ensure that the methods {@link Object#equals(Object)} and
  * {@link Object#hashCode()} use the username as the identifying property.
+ * <p>
+ * Implementations should ensure that {@link Object#toString()} describes the user in a way appropriate for logging and
+ * debugging purposes,
  */
 public interface IAuthorizationUser {
   @NonNull

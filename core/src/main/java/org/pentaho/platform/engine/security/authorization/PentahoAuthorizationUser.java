@@ -13,7 +13,7 @@
 package org.pentaho.platform.engine.security.authorization;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.pentaho.platform.api.engine.security.authorization.IAuthorizationUser;
+import org.pentaho.platform.api.engine.security.authorization.rulesng.IAuthorizationUser;
 
 import java.util.Map;
 import java.util.Set;
@@ -35,5 +35,10 @@ public class PentahoAuthorizationUser implements IAuthorizationUser {
   @Override
   public Set<String> getRoles() {
     return Set.of();
+  }
+
+  @Override
+  public String toString() {
+    return getName();
   }
 }

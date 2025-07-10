@@ -10,10 +10,9 @@
  * Change Date: 2029-07-20
  ******************************************************************************/
 
-package org.pentaho.platform.api.engine.security.authorization;
+package org.pentaho.platform.api.engine.security.authorization.rulesng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import edu.umd.cs.findbugs.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,12 +31,8 @@ import java.util.stream.Stream;
  * @see AuthorizationEvaluationOptions#getIncludesReasons()
  */
 public class AuthorizationEvaluationResult {
-  private static final AuthorizationEvaluationResult DENIED_BY_DEFAULT_RESULT =
-    new AuthorizationEvaluationResult(
-      false,
-      List.of( new AuthorizationEvaluationReason(
-        "org.pentaho.authorization.reason.denied-by-default",
-        "Denied by default" ) ) );
+  private static final AuthorizationEvaluationResult DENIED_BY_DEFAULT = deny( List.of() );
+  private static final AuthorizationEvaluationResult GRANTED_BY_DEFAULT = grant( List.of() );
 
   private final boolean granted;
 
@@ -50,13 +45,14 @@ public class AuthorizationEvaluationResult {
 
   public AuthorizationEvaluationResult( boolean granted, @NonNull List<AuthorizationEvaluationReason> reasons ) {
     this.granted = granted;
-    this.reasons = Objects.requireNonNull( reasons );
+    this.reasons = List.copyOf( Objects.requireNonNull( reasons ) );
   }
 
   /**
    * Indicates whether the authorization was granted.
    *
    * @return {@code true} if the authorization was granted; {@code false} if it was denied.
+   * @see #isDenied()
    */
   public boolean isGranted() {
     return granted;
@@ -66,6 +62,7 @@ public class AuthorizationEvaluationResult {
    * Indicates whether the authorization was denied.
    *
    * @return {@code true} if the authorization was denied; {@code false} if it was granted.
+   * @see #isGranted()
    */
   public boolean isDenied() {
     return !granted;
@@ -83,12 +80,49 @@ public class AuthorizationEvaluationResult {
     return reasons;
   }
 
-  // region static interface
+  /**
+   * Creates an instance of {@code AuthorizationEvaluationResult} having the same granted value, but with
+   * additional reasons.
+   * <p>
+   * If the specified additional reasons are empty, this result instance is returned unchanged.
+   *
+   * @param additionalReasons The additional reasons to be added to the existing reasons.
+   * @return An instance of authorization evaluation result with the additional reasons.
+   */
+  public AuthorizationEvaluationResult addReasons(
+    @NonNull List<AuthorizationEvaluationReason> additionalReasons ) {
 
-  // Default result, when no rules, or all rules abstain.
+    Objects.requireNonNull( additionalReasons );
+
+    return additionalReasons.isEmpty()
+      ? this
+      : new AuthorizationEvaluationResult( granted, combineReasons( reasons, additionalReasons ) );
+
+  }
+
+  // Used for debugging and logging purposes.
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder
+      .append( "AuthorizationEvaluationResult{" )
+      .append( "granted=" )
+      .append( granted )
+      .append( ", reasons=[" );
+
+    for ( var reason : reasons ) {
+      builder.append( reason.toString() );
+    }
+
+    builder.append( "]" );
+
+    return builder.toString();
+  }
+
+  // region static interface
   @NonNull
-  public static AuthorizationEvaluationResult getDeniedByDefaultResult() {
-    return DENIED_BY_DEFAULT_RESULT;
+  public static AuthorizationEvaluationResult grant() {
+    return GRANTED_BY_DEFAULT;
   }
 
   @NonNull
@@ -104,6 +138,12 @@ public class AuthorizationEvaluationResult {
   @NonNull
   public static AuthorizationEvaluationResult grant( @NonNull List<AuthorizationEvaluationReason> reasons ) {
     return new AuthorizationEvaluationResult( true, reasons );
+  }
+
+
+  @NonNull
+  public static AuthorizationEvaluationResult deny() {
+    return DENIED_BY_DEFAULT;
   }
 
   @NonNull
@@ -142,7 +182,7 @@ public class AuthorizationEvaluationResult {
     if ( first.isGranted() == second.isGranted() ) {
       return new AuthorizationEvaluationResult(
         first.isGranted(),
-        combine( first.getReasons(), second.getReasons() ) );
+        combineReasons( first.getReasons(), second.getReasons() ) );
     }
 
     // Different decisions, one granted and one denied.
@@ -150,7 +190,7 @@ public class AuthorizationEvaluationResult {
     return first.isDenied() ? first : second;
   }
 
-  private static List<AuthorizationEvaluationReason> combine(
+  private static List<AuthorizationEvaluationReason> combineReasons(
     @NonNull List<AuthorizationEvaluationReason> first,
     @NonNull List<AuthorizationEvaluationReason> second ) {
 
