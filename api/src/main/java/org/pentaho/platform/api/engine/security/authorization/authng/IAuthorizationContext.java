@@ -6,7 +6,7 @@ import org.springframework.security.authorization.AuthorizationDecision;
 
 public interface IAuthorizationContext {
   @NonNull
-  IAuthorizationRequest getRequest();
+  AuthorizationRequest getRequest();
 
   @NonNull
   IAuthorizationEngine getEngine();
@@ -15,5 +15,5 @@ public interface IAuthorizationContext {
   // Same options.
   // With cycle detection.
   @Nullable
-  AuthorizationDecision authorize( @NonNull IAuthorizationRequest request );
+  AuthorizationDecision authorize( @NonNull AuthorizationRequest request );
 }

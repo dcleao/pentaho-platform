@@ -5,5 +5,5 @@ import org.springframework.security.authorization.AuthorizationDecision;
 
 public interface IAuthorizationEngine {
   @NonNull
-  AuthorizationDecision authorize( @NonNull IAuthorizationRequest request, @NonNull AuthorizationOptions options );
+  AuthorizationDecision authorize( @NonNull AuthorizationRequest request, @NonNull AuthorizationOptions options );
 }
