@@ -15,6 +15,9 @@ import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.
  * Notably, it offers authorization rules the ability to safely and conveniently perform sub-authorizations that affect
  * their own decision, using the same options and in a way that protects against cycles in the process. The context
  * tracks authorization requests to detect and prevent cycles in the evaluation process.
+ * <p>
+ * The engine/context separation aids with the engine being thread-safe, as each authorization's context is independent,
+ * and each authorization is executed in a single thread.
  */
 public interface IAuthorizationContext {
   /**

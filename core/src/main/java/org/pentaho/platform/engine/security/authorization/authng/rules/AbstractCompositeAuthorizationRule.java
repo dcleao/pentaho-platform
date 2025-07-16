@@ -19,7 +19,9 @@ import org.pentaho.platform.api.engine.security.authorization.authng.Authorizati
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationContext;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationRule;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
+import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecisionFactory;
 import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.AuthorizationException;
+import org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions;
 
 import java.util.List;
 import java.util.Objects;
@@ -31,16 +33,57 @@ public abstract class AbstractCompositeAuthorizationRule extends AbstractAuthori
   private static final Log logger = LogFactory.getLog( AbstractCompositeAuthorizationRule.class );
 
   @NonNull
+  private final IAuthorizationDecisionFactory decisionFactory;
+
+  @NonNull
   private final List<IAuthorizationRule> rules;
 
   public AbstractCompositeAuthorizationRule( @NonNull List<IAuthorizationRule> rules ) {
+    this( rules, AuthorizationDecisions.getFactory() );
+  }
+
+  public AbstractCompositeAuthorizationRule( @NonNull List<IAuthorizationRule> rules,
+                                             @NonNull IAuthorizationDecisionFactory decisionFactory ) {
     this.rules = List.copyOf( Objects.requireNonNull( rules ) );
+    this.decisionFactory = Objects.requireNonNull( decisionFactory );
   }
 
   @NonNull
   public List<IAuthorizationRule> getRules() {
     return rules;
   }
+
+  @NonNull
+  protected IAuthorizationDecisionFactory getDecisionFactory() {
+    return decisionFactory;
+  }
+
+  @NonNull
+  @Override
+  public Optional<IAuthorizationDecision> authorize( @NonNull AuthorizationRequest request,
+                                                     @NonNull IAuthorizationContext context )
+    throws AuthorizationException {
+
+    AbstractCompositeResultBuilder resultBuilder = createResultBuilder( context );
+
+    for ( IAuthorizationRule rule : getRules() ) {
+
+      Optional<IAuthorizationDecision> ruleResult = authorizeRule( rule, request, context );
+      if ( ruleResult.isPresent() ) {
+        resultBuilder.withDecision( ruleResult.get() );
+
+        if ( resultBuilder.isImmutable() ) {
+          // If the decision is immutable, no need to evaluate other rules.
+          break;
+        }
+      }
+    }
+
+    return resultBuilder.build();
+  }
+
+  @NonNull
+  protected abstract AbstractCompositeResultBuilder createResultBuilder( @NonNull IAuthorizationContext context );
 
   @NonNull
   protected Optional<IAuthorizationDecision> authorizeRule( @NonNull IAuthorizationRule rule,

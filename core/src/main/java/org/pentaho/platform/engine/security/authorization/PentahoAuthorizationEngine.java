@@ -9,4 +9,6 @@ public class PentahoAuthorizationEngine extends AuthorizationEngine {
   public PentahoAuthorizationEngine( @NonNull IAuthorizationRule rootRule ) {
     super( rootRule );
   }
+
+  // TODO: Implement the hard-coded custom rule for resource-based authorization, as a validation/throw?
 }

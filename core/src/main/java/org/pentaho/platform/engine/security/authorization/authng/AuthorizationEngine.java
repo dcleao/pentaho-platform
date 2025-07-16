@@ -28,6 +28,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
+import static org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions.deny;
+
 public class AuthorizationEngine implements IAuthorizationEngine {
   /**
    * The {@code AuthorizationEvaluationContext} represents a single authorization evaluation process.
@@ -74,10 +76,24 @@ public class AuthorizationEngine implements IAuthorizationEngine {
 
       evaluationPath.push( request );
       try {
-        return getRootRule().evaluate( request, this );
+        return getRootRule()
+          .authorize( request, this )
+          .orElseGet( this::getDefaultDecision );
       } finally {
         evaluationPath.pop();
       }
+    }
+
+    /**
+     * Gets the default decision for when all rules abstain, or no rules are defined.
+     * <p>
+     * The default implementation returns a denied decision.
+     *
+     * @return The default decision.
+     */
+    @NonNull
+    protected IAuthorizationDecision getDefaultDecision() {
+      return deny();
     }
   }
 

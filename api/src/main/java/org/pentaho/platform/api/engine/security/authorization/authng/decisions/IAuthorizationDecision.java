@@ -3,8 +3,8 @@ package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 /**
  * The {@code IAuthorizationDecision} interface represents the result of an authorization process.
  * <p>
- * The {@link Object#toString()} method should provide a description of the decision that is suitable for logging and
- * debugging purposes. For example:
+ * The {@link Object#toString()} method should provide a description of the decision that is suitable for debugging,
+ * auditing and logging purposes. For example:
  * <pre><code>
  * public String toString() {
  *   return String.format(
@@ -34,14 +34,4 @@ public interface IAuthorizationDecision {
   default boolean isDenied() {
     return !isGranted();
   }
-
-  /**
-   * Gets a human-readable description of the authorization decision.
-   * <p>
-   * Should be localized in the current (thread's) system locale, regardless of the user for which the authorization
-   * was evaluated.
-   *
-   * @return The description of the decision.
-   */
-  String getDescription();
 }
