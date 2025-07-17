@@ -48,6 +48,6 @@ public class OpposedAuthorizationRule extends AbstractAuthorizationRule {
     throws AuthorizationException {
 
     return opposedToRule.authorize( request, context )
-      .map( AuthorizationDecisions::opposingTo );
+      .map( AuthorizationDecisions::opposedTo );
   }
 }

@@ -65,8 +65,8 @@ public class AuthorizationDecisions {
   }
 
   @NonNull
-  public static IOpposedAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
-    return decisionFactory.opposingTo( opposingToDecision );
+  public static IOpposedAuthorizationDecision opposedTo( @NonNull IAuthorizationDecision opposedToDecision ) {
+    return decisionFactory.opposedTo( opposedToDecision );
   }
 
   @NonNull

@@ -47,8 +47,8 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
 
   @NonNull
   @Override
-  public IOpposedAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
-    return new OpposedAuthorizationDecision( opposingToDecision );
+  public IOpposedAuthorizationDecision opposedTo( @NonNull IAuthorizationDecision opposedToDecision ) {
+    return new OpposedAuthorizationDecision( opposedToDecision );
   }
 
   @NonNull

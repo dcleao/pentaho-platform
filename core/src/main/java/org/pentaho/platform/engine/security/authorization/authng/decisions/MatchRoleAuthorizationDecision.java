@@ -7,17 +7,17 @@ import org.pentaho.platform.engine.security.messages.Messages;
 import java.util.Objects;
 
 /**
- * The {@code RoleAuthorizationDecision} class represents an authorization decision that is granted based on a
- * user having a specific role.
+ * The {@code MatchRoleAuthorizationDecision} class represents an authorization decision that is granted when the user
+ * of an authorization request having a specific role.
  */
-public class RoleAuthorizationDecision extends AbstractAuthorizationDecision {
+public class MatchRoleAuthorizationDecision extends AbstractAuthorizationDecision {
   private static final String JUSTIFICATION =
     Messages.getInstance().getString( "RoleAuthorizationDecision.JUSTIFICATION" );
 
   @NonNull
   private final String role;
 
-  public RoleAuthorizationDecision( @NonNull AuthorizationRequest request, @NonNull String role ) {
+  public MatchRoleAuthorizationDecision( @NonNull AuthorizationRequest request, @NonNull String role ) {
     super( request, true );
 
     this.role = Objects.requireNonNull( role );
@@ -30,13 +30,13 @@ public class RoleAuthorizationDecision extends AbstractAuthorizationDecision {
 
   @Override
   public String getShortJustification() {
-    // Example: "From role 'Administrator'".
+    // Example: "Has role 'Administrator'".
     return String.format( JUSTIFICATION, role );
   }
 
   @Override
   public String toString() {
-    // Example: "Role[Granted, name: 'Administrator']"
-    return String.format( "Role[%s, name: '%s']", getGrantedLogText(), role );
+    // Example: "MatchRole[Granted, name: 'Administrator']"
+    return String.format( "MatchRole[%s, name: '%s']", getGrantedLogText(), role );
   }
 }
