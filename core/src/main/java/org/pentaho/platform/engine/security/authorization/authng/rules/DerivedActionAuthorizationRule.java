@@ -24,21 +24,22 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions.impliedBy;
+import static org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions.impliedFrom;
 
 /**
- * The {@code ActionImpliedAuthorizationRule} class represents an authorization rule that grants permission to execute
+ * The {@code DerivedActionAuthorizationRule} class represents an authorization rule that grants permission to execute
  * one or more actions (the implied / consequent / derived ones) based on the existing permission to execute another
- * action (the implied-by / antecedent / base one).
+ * action (the implied-from / implied-by / antecedent / base one) for a request otherwise equal to the one being
+ * authorized.
  * <p>
  * If permission is granted to perform the base action, then permission is also granted to perform any of the derived
  * actions. In all other cases, the rule abstains from making a decision.
  * <p>
  * The decisions made by this rule are always of type {@link IImpliedAuthorizationDecision}, having as its
- * {@link IImpliedAuthorizationDecision#getImpliedByDecision() implied-by decision} the result of authorizing an equal
- * request but with the base action instead.
+ * {@link IImpliedAuthorizationDecision#getImpliedFromDecision() implied-from decision} the result of authorizing an
+ * equal request but with the base action instead.
  */
-public class ActionImpliedAuthorizationRule extends AbstractAuthorizationRule {
+public class DerivedActionAuthorizationRule extends AbstractAuthorizationRule {
 
   @NonNull
   private final IAuthorizationAction baseAction;
@@ -46,12 +47,11 @@ public class ActionImpliedAuthorizationRule extends AbstractAuthorizationRule {
   @NonNull
   private final Set<IAuthorizationAction> derivedActions;
 
-  public ActionImpliedAuthorizationRule( @NonNull IAuthorizationAction baseAction,
+  public DerivedActionAuthorizationRule( @NonNull IAuthorizationAction baseAction,
                                          @NonNull Set<IAuthorizationAction> derivedActions ) {
     this.baseAction = Objects.requireNonNull( baseAction );
     this.derivedActions = Set.copyOf( derivedActions );
   }
-
 
   @NonNull
   @Override
@@ -64,11 +64,14 @@ public class ActionImpliedAuthorizationRule extends AbstractAuthorizationRule {
       return Optional.empty();
     }
 
+    // TODO: consider if we should have an own decision class for this rule, to make it easier to later identify,
+    // or if it's enough to use the implied-from decision.
+
     var baseDecision = context.authorize( request.withAction( baseAction ) );
     return baseDecision.isDenied()
       // If denied for the base action, abstain.
       ? Optional.empty()
       // Else grant for the derived action.
-      : Optional.of( impliedBy( baseDecision ) );
+      : Optional.of( impliedFrom( request, baseDecision ) );
   }
 }

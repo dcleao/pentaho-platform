@@ -3,42 +3,43 @@ package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 // TODO: Alternate names: Or, Affirmative, Positive
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationOptions;
-
-import java.util.Set;
 
 /**
- * The {@code IImpliedAuthorizationDecision} interface represents an authorization decision which was implied by
- * another decision - the <i>antecedent</i> decision, having the same granted status (whether granted or denied).
+ * The {@code IImpliedAuthorizationDecision} interface represents a decision for an authorization request which is
+ * implied from/by the decision for a different, but related, request, both decisions sharing the same granted status
+ * (whether granted or denied).
  * <p>
- * To be clear, it must be the case that the implied decision's {@link #isGranted()} status is the same as the
- * granted status of the decision returned by {@link #getImpliedByDecision()}.
+ * This decision is called the <i>consequent</i>, or <i>implied</i> decision, while the other decision the
+ * <i>antecedent</i>, or <i>implied-from</i> decision and is the value of {@link #getImpliedFromDecision()}.
  * <p>
- * Typically, decisions of this type are the result of "implication rules", having the form:
- * "if A is granted, then B is granted, else abstain".
+ * The {@link #getRequest() request} of both decisions must not be equal, according to {@link Object#equals(Object)}.
+ * <p>
+ * The {@link #isGranted() granted status} of both decisions must be the same.
+ * <p>
+ * Typically, decisions of this type are the result of "implication rules", having the form (where <code>A</code> stands
+ * for the <i>antecedent</i> decision, and <code>C</code> for the <i>consequent</i> decision):
+ * <pre>
+ * if A is granted
+ * then C is granted
+ * else abstention
+ * </pre>
  * It's important to note that when the antecedent is not granted (or is an abstention), the implication cannot conclude
- * anything about the consequent: whether B should be granted or denied; the result should be an abstention.
+ * anything about the consequent — whether B should be granted or denied —, and so the result should be an abstention.
  * <p>
- * Because of this property, when the implied decision is built with a denied status, it must have been because the
- * decision was the result of an implication rule having the (less typical) form:
- * "if A is denied, then B is denied, else abstain".
- * <p>
- * The implementation of {@link #getDecisions()} must return a set having {@link #getImpliedByDecision()} as its single
- * element. This must be the case regardless of the {@link AuthorizationOptions#getDecisionReportingMode()} used for the
- * authorization process.
+ * Because of this property, when the implied decision is a denial, it must have been because it was instead the result
+ * of an implication rule having the (less common) form:
+ * <pre>
+ * if A is denied
+ * then C is denied
+ * else abstention
+ * </pre>
  */
-public interface IImpliedAuthorizationDecision extends ICompositeAuthorizationDecision {
+public interface IImpliedAuthorizationDecision extends IAuthorizationDecision {
   /**
-   * Gets the decision that implies this one.
+   * Gets the decision from which this one is implied.
    *
-   * @return The decision that implies this one.
+   * @return The implied-from decision.
    */
   @NonNull
-  IAuthorizationDecision getImpliedByDecision();
-
-  @NonNull
-  @Override
-  default Set<IAuthorizationDecision> getDecisions() {
-    return Set.of( getImpliedByDecision() );
-  }
+  IAuthorizationDecision getImpliedFromDecision();
 }

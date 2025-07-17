@@ -3,6 +3,7 @@ package org.pentaho.platform.engine.security.authorization.authng.rules;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationDecisionReportingMode;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.ICompositeAuthorizationDecision;
 
@@ -128,7 +129,7 @@ public abstract class AbstractCompositeResultBuilder {
   }
 
   @NonNull
-  public Optional<IAuthorizationDecision> build() {
+  public Optional<IAuthorizationDecision> build( @NonNull AuthorizationRequest request ) {
     switch ( state ) {
       case EMPTY:
         // No decisions, return empty.
@@ -143,7 +144,7 @@ public abstract class AbstractCompositeResultBuilder {
         // Multiple decisions, create composite decision.
         assert resultDecision != null;
         Set<IAuthorizationDecision> decisions = ( (CompositeDecisionBuilder) resultDecision ).getDecisions();
-        return Optional.of( createDecision( resultDecision.isGranted(), decisions ) );
+        return Optional.of( createDecision( request, resultDecision.isGranted(), decisions ) );
 
       default:
         throw new IllegalStateException( "Unexpected state: " + state );
@@ -152,6 +153,7 @@ public abstract class AbstractCompositeResultBuilder {
 
   @NonNull
   protected abstract ICompositeAuthorizationDecision createDecision(
+    @NonNull AuthorizationRequest request,
     boolean isGranted,
     @NonNull Set<IAuthorizationDecision> decisions );
 
@@ -162,6 +164,13 @@ public abstract class AbstractCompositeResultBuilder {
 
     @NonNull
     private final Set<IAuthorizationDecision> decisions = new LinkedHashSet<>();
+
+    @NonNull
+    @Override
+    public AuthorizationRequest getRequest() {
+      // Not really needed for internal use.
+      throw new UnsupportedOperationException();
+    }
 
     @Override
     public boolean isGranted() {

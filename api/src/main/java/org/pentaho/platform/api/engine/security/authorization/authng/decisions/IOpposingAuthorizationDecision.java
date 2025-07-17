@@ -1,24 +1,20 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationOptions;
-
-import java.util.Set;
 
 // TODO: Alternate names: Opposite, Opposing, Opposition, Negation, Not, Inverse
 
 /**
  * The {@code IOpposingAuthorizationDecision} interface represents an authorization decision that opposes (is the
- * opposite of) another decision.
+ * opposite of) another decision for the <i>same</i> authorization request.
  * <p>
- * The decision is granted if the contained decision, {@link #getOpposedToDecision()} is denied, or denied if the
- * contained decision is granted.
+ * The decision is granted if the {@link #getOpposedToDecision() opposed-to decision} is denied, or denied if the
+ * opposing-to decision is granted. Abstentions are preserved.
  * <p>
- * The implementation of {@link #getDecisions()} must return a set having {@link #getOpposedToDecision()} as its single
- * element. This must be the case regardless of the {@link AuthorizationOptions#getDecisionReportingMode()} used for the
- * authorization process.
+ * The value of {@link #getRequest()} must be the same as that of the {@link #getOpposedToDecision() opposed-to
+ * decision}.
  */
-public interface IOpposingAuthorizationDecision extends ICompositeAuthorizationDecision {
+public interface IOpposingAuthorizationDecision extends IAuthorizationDecision {
   /**
    * Gets the decision that this one is the opposite of.
    *
@@ -26,10 +22,4 @@ public interface IOpposingAuthorizationDecision extends ICompositeAuthorizationD
    */
   @NonNull
   IAuthorizationDecision getOpposedToDecision();
-
-  @NonNull
-  @Override
-  default Set<IAuthorizationDecision> getDecisions() {
-    return Set.of( getOpposedToDecision() );
-  }
 }

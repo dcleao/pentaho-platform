@@ -1,6 +1,7 @@
 package org.pentaho.platform.engine.security.authorization.authng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAllAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAnyAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
@@ -35,28 +36,32 @@ public class AuthorizationDecisions {
   }
 
   @NonNull
-  public static IAuthorizationDecision grant() {
-    return decisionFactory.grant();
+  public static IAuthorizationDecision grant( @NonNull AuthorizationRequest request ) {
+    return decisionFactory.grant( request );
   }
 
   @NonNull
-  public static IAuthorizationDecision deny() {
-    return decisionFactory.deny();
+  public static IAuthorizationDecision deny( @NonNull AuthorizationRequest request ) {
+    return decisionFactory.deny( request );
   }
 
   @NonNull
-  public static IAuthorizationDecision valueOf( boolean granted ) {
-    return decisionFactory.valueOf( granted );
+  public static IAuthorizationDecision granted( @NonNull AuthorizationRequest request, boolean granted ) {
+    return decisionFactory.granted( request, granted );
   }
 
   @NonNull
-  public static IAnyAuthorizationDecision anyOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-    return decisionFactory.anyOf( granted, decisions );
+  public static IAnyAuthorizationDecision anyOf( @NonNull AuthorizationRequest request,
+                                                 boolean granted,
+                                                 @NonNull Set<IAuthorizationDecision> decisions ) {
+    return decisionFactory.anyOf( request, granted, decisions );
   }
 
   @NonNull
-  public static IAllAuthorizationDecision allOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-    return decisionFactory.allOf( granted, decisions );
+  public static IAllAuthorizationDecision allOf( @NonNull AuthorizationRequest request,
+                                                 boolean granted,
+                                                 @NonNull Set<IAuthorizationDecision> decisions ) {
+    return decisionFactory.allOf( request, granted, decisions );
   }
 
   @NonNull
@@ -65,7 +70,8 @@ public class AuthorizationDecisions {
   }
 
   @NonNull
-  public static IImpliedAuthorizationDecision impliedBy( @NonNull IAuthorizationDecision impliedByDecision ) {
-    return decisionFactory.impliedBy( impliedByDecision );
+  public static IImpliedAuthorizationDecision impliedFrom( @NonNull AuthorizationRequest request,
+                                                           @NonNull IAuthorizationDecision impliedByDecision ) {
+    return decisionFactory.impliedFrom( request, impliedByDecision );
   }
 }

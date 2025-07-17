@@ -78,7 +78,7 @@ public class AuthorizationEngine implements IAuthorizationEngine {
       try {
         return getRootRule()
           .authorize( request, this )
-          .orElseGet( this::getDefaultDecision );
+          .orElseGet( () -> getDefaultDecision( request ) );
       } finally {
         evaluationPath.pop();
       }
@@ -89,11 +89,12 @@ public class AuthorizationEngine implements IAuthorizationEngine {
      * <p>
      * The default implementation returns a denied decision.
      *
+     * @param request The authorization request.
      * @return The default decision.
      */
     @NonNull
-    protected IAuthorizationDecision getDefaultDecision() {
-      return deny();
+    protected IAuthorizationDecision getDefaultDecision( @NonNull AuthorizationRequest request ) {
+      return deny( request );
     }
   }
 

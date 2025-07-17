@@ -13,6 +13,7 @@
 package org.pentaho.platform.engine.security.authorization.authng.rules;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationContext;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationRule;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
@@ -39,9 +40,10 @@ public class AllAuthorizationRule extends AbstractCompositeAuthorizationRule {
     return new AbstractCompositeResultBuilder( context.getOptions().getDecisionReportingMode() ) {
       @NonNull
       @Override
-      protected ICompositeAuthorizationDecision createDecision( boolean isGranted,
+      protected ICompositeAuthorizationDecision createDecision( @NonNull AuthorizationRequest request,
+                                                                boolean isGranted,
                                                                 @NonNull Set<IAuthorizationDecision> decisions ) {
-        return getDecisionFactory().allOf( isGranted, decisions );
+        return getDecisionFactory().allOf( request, isGranted, decisions );
       }
 
       @Override

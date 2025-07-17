@@ -17,6 +17,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.Authorizati
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationContext;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationRule;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
+import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposingAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.AuthorizationException;
 import org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions;
 
@@ -26,6 +27,10 @@ import java.util.Optional;
 /**
  * The {@code OpposingAuthorizationRule} class represents an authorization rule whose decision is always opposite
  * of that of another rule. Abstentions are preserved.
+ * <p>
+ * The decisions made by this rule are always of type {@link IOpposingAuthorizationDecision}, and have as its
+ * {@link IOpposingAuthorizationDecision#getOpposedToDecision() opposing-to decision} the result of authorizing the
+ * opposing to rule for the same request.
  */
 public class OpposingAuthorizationRule extends AbstractAuthorizationRule {
 
@@ -42,8 +47,7 @@ public class OpposingAuthorizationRule extends AbstractAuthorizationRule {
                                                      @NonNull IAuthorizationContext context )
     throws AuthorizationException {
 
-    var result = opposingToRule.authorize( request, context );
-
-    return result.map( AuthorizationDecisions::opposingTo );
+    return opposingToRule.authorize( request, context )
+      .map( AuthorizationDecisions::opposingTo );
   }
 }

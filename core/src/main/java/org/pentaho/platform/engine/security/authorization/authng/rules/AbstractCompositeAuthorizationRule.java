@@ -79,7 +79,7 @@ public abstract class AbstractCompositeAuthorizationRule extends AbstractAuthori
       }
     }
 
-    return resultBuilder.build();
+    return resultBuilder.build( request );
   }
 
   @NonNull
@@ -92,17 +92,17 @@ public abstract class AbstractCompositeAuthorizationRule extends AbstractAuthori
     throws AuthorizationException {
 
     try {
-      Optional<IAuthorizationDecision> decision = rule.authorize( request, context );
+      Optional<IAuthorizationDecision> result = rule.authorize( request, context );
 
       if ( logger.isDebugEnabled() ) {
         logger.debug( String.format(
-          "Rule '%s' authorize: %s, decision: %s",
+          "Rule '%s' authorize: %s, result: %s",
           rule,
           request,
-          decision ) );
+          result.isEmpty() ? "abstained" : result.get() ) );
       }
 
-      return decision;
+      return result;
 
     } catch ( AuthorizationException e ) {
       // This exception may be the AuthorizationCycleException, thrown by the context itself.

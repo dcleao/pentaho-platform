@@ -1,5 +1,8 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
+
 /**
  * The {@code IAuthorizationDecision} interface represents the result of an authorization process.
  * <p>
@@ -15,6 +18,12 @@ package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
  * </code></pre>
  */
 public interface IAuthorizationDecision {
+  /**
+   * Gets the authorization request that this decision grants or denies.
+   */
+  @NonNull
+  AuthorizationRequest getRequest();
+
   /**
    * Indicates whether the authorization was granted.
    *

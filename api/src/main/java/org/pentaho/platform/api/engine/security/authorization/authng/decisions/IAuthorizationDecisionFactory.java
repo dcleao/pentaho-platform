@@ -1,28 +1,36 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 
 import java.util.Set;
 
 public interface IAuthorizationDecisionFactory {
   @NonNull
-  IAuthorizationDecision grant();
+  IAuthorizationDecision grant( @NonNull AuthorizationRequest request );
 
   @NonNull
-  IAuthorizationDecision deny();
+  IAuthorizationDecision deny( @NonNull AuthorizationRequest request );
 
   @NonNull
-  IAuthorizationDecision valueOf( boolean granted );
+  default IAuthorizationDecision granted( @NonNull AuthorizationRequest request, boolean granted ) {
+    return granted ? grant( request ) : deny( request );
+  }
 
   @NonNull
-  IAnyAuthorizationDecision anyOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions );
+  IAnyAuthorizationDecision anyOf( @NonNull AuthorizationRequest request,
+                                   boolean granted,
+                                   @NonNull Set<IAuthorizationDecision> decisions );
 
   @NonNull
-  IAllAuthorizationDecision allOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions );
+  IAllAuthorizationDecision allOf( @NonNull AuthorizationRequest request,
+                                   boolean granted,
+                                   @NonNull Set<IAuthorizationDecision> decisions );
 
   @NonNull
   IOpposingAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision );
 
   @NonNull
-  IImpliedAuthorizationDecision impliedBy( @NonNull IAuthorizationDecision impliedByDecision );
+  IImpliedAuthorizationDecision impliedFrom( @NonNull AuthorizationRequest request,
+                                             @NonNull IAuthorizationDecision impliedByDecision );
 }

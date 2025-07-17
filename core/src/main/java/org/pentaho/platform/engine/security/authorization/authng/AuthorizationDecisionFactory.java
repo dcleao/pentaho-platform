@@ -1,6 +1,7 @@
 package org.pentaho.platform.engine.security.authorization.authng;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAllAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAnyAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
@@ -8,44 +9,40 @@ import org.pentaho.platform.api.engine.security.authorization.authng.decisions.I
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.ICompositeAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IImpliedAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposingAuthorizationDecision;
+import org.pentaho.platform.engine.security.authorization.authng.decisions.AbstractAuthorizationDecision;
 import org.pentaho.platform.engine.security.messages.Messages;
 
-import java.util.Objects;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AuthorizationDecisionFactory implements IAuthorizationDecisionFactory {
-  private static final IAuthorizationDecision GRANTED = new AuthorizationDecision( true );
-  private static final IAuthorizationDecision DENIED = new AuthorizationDecision( false );
-
   @NonNull
   @Override
-  public IAuthorizationDecision grant() {
-    return GRANTED;
+  public IAuthorizationDecision grant( @NonNull AuthorizationRequest request ) {
+    return new AbstractAuthorizationDecision( request, true );
   }
 
   @NonNull
   @Override
-  public IAuthorizationDecision deny() {
-    return DENIED;
+  public IAuthorizationDecision deny( @NonNull AuthorizationRequest request ) {
+    return new AbstractAuthorizationDecision( request, false );
   }
 
   @NonNull
   @Override
-  public IAuthorizationDecision valueOf( boolean granted ) {
-    return granted ? GRANTED : DENIED;
+  public IAnyAuthorizationDecision anyOf( @NonNull AuthorizationRequest request,
+                                          boolean granted,
+                                          @NonNull Set<IAuthorizationDecision> decisions ) {
+    return new AnyAuthorizationDecision( request, granted, decisions );
   }
 
   @NonNull
   @Override
-  public IAnyAuthorizationDecision anyOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-    return new AnyAuthorizationDecision( granted, decisions );
-  }
-
-  @NonNull
-  @Override
-  public IAllAuthorizationDecision allOf( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-    return new AllAuthorizationDecision( granted, decisions );
+  public IAllAuthorizationDecision allOf( @NonNull AuthorizationRequest request,
+                                          boolean granted,
+                                          @NonNull Set<IAuthorizationDecision> decisions ) {
+    return new AllAuthorizationDecision( request, granted, decisions );
   }
 
   @NonNull
@@ -56,34 +53,12 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
 
   @NonNull
   @Override
-  public IImpliedAuthorizationDecision impliedBy( @NonNull IAuthorizationDecision impliedByDecision ) {
-    return new ImpliedAuthorizationDecision( impliedByDecision );
+  public IImpliedAuthorizationDecision impliedFrom( @NonNull AuthorizationRequest request,
+                                                    @NonNull IAuthorizationDecision impliedByDecision ) {
+    return new ImpliedAuthorizationDecision( request, impliedByDecision );
   }
 
-  // region Standard decision types' implementations
-  private static class AuthorizationDecision implements IAuthorizationDecision {
-
-    private static final String GRANTED_DESCRIPTION =
-      Messages.getInstance().getString( "AuthorizationDecision.GRANTED" );
-    private static final String DENIED_DESCRIPTION = Messages.getInstance().getString( "AuthorizationDecision.DENIED" );
-
-    private final boolean granted;
-
-    public AuthorizationDecision( boolean granted ) {
-      this.granted = granted;
-    }
-
-    @Override
-    public boolean isGranted() {
-      return granted;
-    }
-
-    protected String getGrantedText() {
-      return isGranted() ? GRANTED_DESCRIPTION : DENIED_DESCRIPTION;
-    }
-  }
-
-  private static class OpposingAuthorizationDecision extends AuthorizationDecision
+  private static class OpposingAuthorizationDecision extends AbstractAuthorizationDecision
     implements IOpposingAuthorizationDecision {
 
     private static final String OPPOSING_TO_TEXT =
@@ -94,7 +69,7 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
 
     public OpposingAuthorizationDecision( @NonNull IAuthorizationDecision opposedToDecision ) {
       // Negate the granted state of the opposed decision.
-      super( !opposedToDecision.isGranted() );
+      super( opposedToDecision.getRequest(), !opposedToDecision.isGranted() );
 
       this.opposedToDecision = opposedToDecision;
     }
@@ -115,7 +90,7 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     }
   }
 
-  private static class ImpliedAuthorizationDecision extends AuthorizationDecision
+  private static class ImpliedAuthorizationDecision extends AbstractAuthorizationDecision
     implements IImpliedAuthorizationDecision {
 
     private static final String IMPLIED_BY_TEXT =
@@ -124,16 +99,22 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @NonNull
     private final IAuthorizationDecision impliedByDecision;
 
-    public ImpliedAuthorizationDecision( @NonNull IAuthorizationDecision impliedByDecision ) {
+    public ImpliedAuthorizationDecision( @NonNull AuthorizationRequest request,
+                                         @NonNull IAuthorizationDecision impliedByDecision ) {
       // Same granted state of the implied by decision.
-      super( impliedByDecision.isGranted() );
+      super( request, impliedByDecision.isGranted() );
 
       this.impliedByDecision = impliedByDecision;
+
+      if ( request.equals( impliedByDecision.getRequest() ) ) {
+        throw new IllegalArgumentException(
+          "Argument 'request' cannot be equal to the request of argument 'impliedByDecision'." );
+      }
     }
 
     @NonNull
     @Override
-    public IAuthorizationDecision getImpliedByDecision() {
+    public IAuthorizationDecision getImpliedFromDecision() {
       return impliedByDecision;
     }
 
@@ -147,7 +128,7 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     }
   }
 
-  private abstract static class CompositeAuthorizationDecision extends AuthorizationDecision
+  private abstract static class AbstractCompositeAuthorizationDecision extends AbstractAuthorizationDecision
     implements ICompositeAuthorizationDecision {
 
     private static final String COMPOSITE_SEPARATOR_TEXT =
@@ -156,9 +137,11 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @NonNull
     private final Set<IAuthorizationDecision> decisions;
 
-    protected CompositeAuthorizationDecision( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-      super( granted );
-      this.decisions = Objects.requireNonNull( decisions );
+    protected AbstractCompositeAuthorizationDecision( @NonNull AuthorizationRequest request,
+                                                      boolean granted,
+                                                      @NonNull Set<IAuthorizationDecision> decisions ) {
+      super( request, granted );
+      this.decisions = Collections.unmodifiableSet( decisions );
     }
 
     @NonNull
@@ -178,19 +161,21 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
         .collect( Collectors.joining( COMPOSITE_SEPARATOR_TEXT ) );
 
       return String.format(
+        getTextPattern(),
         getGrantedText(),
-        super.toString(),
         decisionsText );
     }
   }
 
-  private static class AllAuthorizationDecision extends CompositeAuthorizationDecision
+  private static class AllAuthorizationDecision extends AbstractCompositeAuthorizationDecision
     implements IAllAuthorizationDecision {
 
     private static final String ALL_OF_TEXT = Messages.getInstance().getString( "AuthorizationDecisionFactory.ALL_OF" );
 
-    public AllAuthorizationDecision( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-      super( granted, decisions );
+    public AllAuthorizationDecision( @NonNull AuthorizationRequest request,
+                                     boolean granted,
+                                     @NonNull Set<IAuthorizationDecision> decisions ) {
+      super( request, granted, decisions );
     }
 
     @NonNull
@@ -200,13 +185,15 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     }
   }
 
-  private static class AnyAuthorizationDecision extends CompositeAuthorizationDecision
+  private static class AnyAuthorizationDecision extends AbstractCompositeAuthorizationDecision
     implements IAnyAuthorizationDecision {
 
     private static final String ANY_OF_TEXT = Messages.getInstance().getString( "AuthorizationDecisionFactory.ANY_OF" );
 
-    public AnyAuthorizationDecision( boolean granted, @NonNull Set<IAuthorizationDecision> decisions ) {
-      super( granted, decisions );
+    public AnyAuthorizationDecision( @NonNull AuthorizationRequest request,
+                                     boolean granted,
+                                     @NonNull Set<IAuthorizationDecision> decisions ) {
+      super( request, granted, decisions );
     }
 
     @NonNull
