@@ -28,7 +28,7 @@ public interface IAuthorizationDecisionFactory {
                                    @NonNull Set<IAuthorizationDecision> decisions );
 
   @NonNull
-  IOpposingAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision );
+  IOpposedAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision );
 
   @NonNull
   IImpliedAuthorizationDecision impliedFrom( @NonNull AuthorizationRequest request,

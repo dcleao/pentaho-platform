@@ -17,7 +17,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.Authorizati
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationContext;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationRule;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
-import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposingAuthorizationDecision;
+import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposedAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.AuthorizationException;
 import org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions;
 
@@ -25,20 +25,20 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The {@code OpposingAuthorizationRule} class represents an authorization rule whose decision is always opposite
- * of that of another rule. Abstentions are preserved.
+ * The {@code OpposedAuthorizationRule} class represents an authorization rule whose decision is always opposed to that
+ * of another rule. Abstentions are preserved.
  * <p>
- * The decisions made by this rule are always of type {@link IOpposingAuthorizationDecision}, and have as its
- * {@link IOpposingAuthorizationDecision#getOpposedToDecision() opposing-to decision} the result of authorizing the
- * opposing to rule for the same request.
+ * The decisions made by this rule are always of type {@link IOpposedAuthorizationDecision}, and have as its
+ * {@link IOpposedAuthorizationDecision#getOpposedToDecision() opposed-to decision} the result of authorizing the
+ * opposed-to rule for the same request.
  */
-public class OpposingAuthorizationRule extends AbstractAuthorizationRule {
+public class OpposedAuthorizationRule extends AbstractAuthorizationRule {
 
   @NonNull
-  private final IAuthorizationRule opposingToRule;
+  private final IAuthorizationRule opposedToRule;
 
-  public OpposingAuthorizationRule( @NonNull IAuthorizationRule opposingToRule ) {
-    this.opposingToRule = Objects.requireNonNull( opposingToRule );
+  public OpposedAuthorizationRule( @NonNull IAuthorizationRule opposedToRule ) {
+    this.opposedToRule = Objects.requireNonNull( opposedToRule );
   }
 
   @NonNull
@@ -47,7 +47,7 @@ public class OpposingAuthorizationRule extends AbstractAuthorizationRule {
                                                      @NonNull IAuthorizationContext context )
     throws AuthorizationException {
 
-    return opposingToRule.authorize( request, context )
+    return opposedToRule.authorize( request, context )
       .map( AuthorizationDecisions::opposingTo );
   }
 }

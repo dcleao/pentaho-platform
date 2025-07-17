@@ -8,7 +8,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.decisions.I
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecisionFactory;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.ICompositeAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IImpliedAuthorizationDecision;
-import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposingAuthorizationDecision;
+import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposedAuthorizationDecision;
 import org.pentaho.platform.engine.security.authorization.authng.decisions.AbstractAuthorizationDecision;
 import org.pentaho.platform.engine.security.messages.Messages;
 
@@ -47,8 +47,8 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
 
   @NonNull
   @Override
-  public IOpposingAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
-    return new OpposingAuthorizationDecision( opposingToDecision );
+  public IOpposedAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
+    return new OpposedAuthorizationDecision( opposingToDecision );
   }
 
   @NonNull
@@ -58,16 +58,16 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     return new ImpliedAuthorizationDecision( request, impliedByDecision );
   }
 
-  private static class OpposingAuthorizationDecision extends AbstractAuthorizationDecision
-    implements IOpposingAuthorizationDecision {
+  private static class OpposedAuthorizationDecision extends AbstractAuthorizationDecision
+    implements IOpposedAuthorizationDecision {
 
-    private static final String OPPOSING_TO_JUSTIFICATION =
-      Messages.getInstance().getString( "AuthorizationDecisionFactory.OPPOSING_TO_JUSTIFICATION" );
+    private static final String OPPOSED_TO_JUSTIFICATION =
+      Messages.getInstance().getString( "AuthorizationDecisionFactory.OPPOSED_TO_JUSTIFICATION" );
 
     @NonNull
     private final IAuthorizationDecision opposedToDecision;
 
-    public OpposingAuthorizationDecision( @NonNull IAuthorizationDecision opposedToDecision ) {
+    public OpposedAuthorizationDecision( @NonNull IAuthorizationDecision opposedToDecision ) {
       // Negate the granted state of the opposed decision.
       super( opposedToDecision.getRequest(), !opposedToDecision.isGranted() );
 
@@ -83,16 +83,13 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @Override
     public String getShortJustification() {
       // Example: "Opposing: <opposed decision justification>"
-      return String.format( OPPOSING_TO_JUSTIFICATION, opposedToDecision );
+      return String.format( OPPOSED_TO_JUSTIFICATION, opposedToDecision );
     }
 
     @Override
     public String toString() {
-      // Example: "Opposing(Granted, to: DerivedFromAction[Denied, ...])"
-      return String.format(
-        "Opposing[%s, to: %s]",
-        getGrantedLogText(),
-        opposedToDecision );
+      // Example: "Opposed(Granted, to: DerivedFromAction[Denied, ...])"
+      return String.format( "Opposed[%s, to: %s]", getGrantedLogText(), opposedToDecision );
     }
   }
 
@@ -133,18 +130,12 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @Override
     public String toString() {
       // Example: "Implied[Granted, from: GeneralRoleBased[Granted, role=Administrator]]"
-      return String.format(
-        "ImpliedFrom[%s, impliedFrom: %s]",
-        getGrantedLogText(),
-        impliedFromDecision );
+      return String.format( "Implied[%s, from: %s]", getGrantedLogText(), impliedFromDecision );
     }
   }
 
   private abstract static class AbstractCompositeAuthorizationDecision extends AbstractAuthorizationDecision
     implements ICompositeAuthorizationDecision {
-
-    private static final String COMPOSITE_SEPARATOR_TEXT =
-      Messages.getInstance().getString( "AuthorizationDecisionFactory.COMPOSITE_SEPARATOR" );
 
     @NonNull
     private final Set<IAuthorizationDecision> decisions;
@@ -173,8 +164,6 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
   private static class AllAuthorizationDecision extends AbstractCompositeAuthorizationDecision
     implements IAllAuthorizationDecision {
 
-    private static final String ALL_OF_TEXT = Messages.getInstance().getString( "AuthorizationDecisionFactory.ALL_OF" );
-
     public AllAuthorizationDecision( @NonNull AuthorizationRequest request,
                                      boolean granted,
                                      @NonNull Set<IAuthorizationDecision> decisions ) {
@@ -190,8 +179,6 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
 
   private static class AnyAuthorizationDecision extends AbstractCompositeAuthorizationDecision
     implements IAnyAuthorizationDecision {
-
-    private static final String ANY_OF_TEXT = Messages.getInstance().getString( "AuthorizationDecisionFactory.ANY_OF" );
 
     public AnyAuthorizationDecision( @NonNull AuthorizationRequest request,
                                      boolean granted,

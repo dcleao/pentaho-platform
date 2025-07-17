@@ -7,7 +7,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.decisions.I
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecisionFactory;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IImpliedAuthorizationDecision;
-import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposingAuthorizationDecision;
+import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposedAuthorizationDecision;
 
 import java.util.Set;
 
@@ -65,7 +65,7 @@ public class AuthorizationDecisions {
   }
 
   @NonNull
-  public static IOpposingAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
+  public static IOpposedAuthorizationDecision opposingTo( @NonNull IAuthorizationDecision opposingToDecision ) {
     return decisionFactory.opposingTo( opposingToDecision );
   }
 
