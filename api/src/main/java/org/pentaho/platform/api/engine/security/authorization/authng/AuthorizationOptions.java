@@ -12,6 +12,8 @@
 
 package org.pentaho.platform.api.engine.security.authorization.authng;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
+
 /**
  * The {@code AuthorizationOptions} class encapsulates options that control the authorization evaluation process.
  * <p>
@@ -40,24 +42,11 @@ public class AuthorizationOptions {
     this.decisionReportingMode = decisionReportingMode;
   }
 
-  // early bailout
-  // run to end / dry run / full run
-  // include extra / extended / all information
-  // include full report
-  // extended decision reporting
-
   /**
    * Indicates the level of reporting that authorization decisions should include.
-   * <p>
-   * TODO...
-   * By default, the authorization process returns as soon as a decision (grant or deny) is settled.
-   * When this option is set to {@code true}, the process will continue to evaluate and collect the decisions of other
-   * applicable, supporting rules. This may be useful for informing the user of all the conditions that contribute to a
-   * result, regardless of which rules are evaluated first.
-   * <p>
-   *
-   * @return {@code true} if all decisions should be included; {@code false}, otherwise.
+   * @return The decision reporting mode.
    */
+  @NonNull
   public AuthorizationDecisionReportingMode getDecisionReportingMode() {
     return decisionReportingMode;
   }

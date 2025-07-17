@@ -20,7 +20,6 @@ import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizat
  * It provides a default implementation of the {@link #toString()} method, which returns the fully qualified class name.
  */
 public abstract class AbstractAuthorizationRule implements IAuthorizationRule {
-
   @Override
   public String toString() {
     return getClass().getTypeName();

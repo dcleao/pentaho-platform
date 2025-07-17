@@ -1,6 +1,5 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
-// TODO: Alternative names: And, Unanimous, Consensus, Conjunction
 /**
  * The {@code IAllAuthorizationDecision} interface represents a decision for an authorization request determined from
  * the <i>conjunction</i> of the contained decisions for the same authorization request.

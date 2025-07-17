@@ -1,7 +1,5 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
-// TODO: Alternative names: Or, Affirmative, Positive, Disjunction
-
 /**
  * The {@code IAnyAuthorizationDecision} interface represents a decision for an authorization request determined from
  * the <i>disjunction</i> of the contained decisions for the same authorization request.

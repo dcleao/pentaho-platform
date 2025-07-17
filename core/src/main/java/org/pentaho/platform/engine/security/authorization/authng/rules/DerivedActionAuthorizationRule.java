@@ -64,7 +64,7 @@ public class DerivedActionAuthorizationRule extends AbstractAuthorizationRule {
       return Optional.empty();
     }
 
-    // TODO: consider if we should have an own decision class for this rule, to make it easier to later identify,
+    // TODO: Consider if we should have an own decision class for this rule, to make it easier to later identify,
     // or if it's enough to use the implied-from decision.
 
     var baseDecision = context.authorize( request.withAction( baseAction ) );

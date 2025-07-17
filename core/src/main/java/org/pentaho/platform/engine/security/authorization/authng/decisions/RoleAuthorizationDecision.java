@@ -6,7 +6,10 @@ import org.pentaho.platform.engine.security.messages.Messages;
 
 import java.util.Objects;
 
-// TODO: docs
+/**
+ * The {@code RoleAuthorizationDecision} class represents an authorization decision that is granted based on a
+ * user having a specific role.
+ */
 public class RoleAuthorizationDecision extends AbstractAuthorizationDecision {
   private static final String JUSTIFICATION =
     Messages.getInstance().getString( "RoleAuthorizationDecision.JUSTIFICATION" );

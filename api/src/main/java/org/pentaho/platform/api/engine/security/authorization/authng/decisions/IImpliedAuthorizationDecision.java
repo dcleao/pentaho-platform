@@ -1,7 +1,5 @@
 package org.pentaho.platform.api.engine.security.authorization.authng.decisions;
 
-// TODO: Alternate names: Or, Affirmative, Positive
-
 import edu.umd.cs.findbugs.annotations.NonNull;
 
 /**
