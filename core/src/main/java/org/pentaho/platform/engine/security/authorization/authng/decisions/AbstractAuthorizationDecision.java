@@ -6,8 +6,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.decisions.I
 
 import java.util.Objects;
 
-// region Standard decision types' implementations
-public class AbstractAuthorizationDecision implements IAuthorizationDecision {
+public abstract class AbstractAuthorizationDecision implements IAuthorizationDecision {
 
   @NonNull
   private final AuthorizationRequest request;

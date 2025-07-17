@@ -17,27 +17,26 @@ import org.pentaho.platform.api.engine.IAuthorizationAction;
 import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
 import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizationContext;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
-import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IImpliedAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.AuthorizationException;
+import org.pentaho.platform.engine.security.authorization.authng.decisions.DerivedActionAuthorizationDecision;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import static org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions.impliedFrom;
-
 /**
- * The {@code DerivedActionAuthorizationRule} class represents an authorization rule that grants permission to execute
- * one or more actions (the implied / consequent / derived ones) based on the existing permission to execute another
- * action (the implied-from / implied-by / antecedent / base one) for a request otherwise equal to the one being
+ * The {@code DerivedActionAuthorizationRule} class represents an authorization rule that grants permission to perform
+ * one or more actions (the derived / implied / consequent ones) based on the existing permission to perform another
+ * action (the base / implied-from / implied-by / antecedent one) for a request otherwise equal to the one being
  * authorized.
  * <p>
  * If permission is granted to perform the base action, then permission is also granted to perform any of the derived
  * actions. In all other cases, the rule abstains from making a decision.
  * <p>
- * The decisions made by this rule are always of type {@link IImpliedAuthorizationDecision}, having as its
- * {@link IImpliedAuthorizationDecision#getImpliedFromDecision() implied-from decision} the result of authorizing an
- * equal request but with the base action instead.
+ * The decisions taken by this rule are always of type {@link DerivedActionAuthorizationDecision}, having as its
+ * {@link DerivedActionAuthorizationDecision#getImpliedFromDecision() implied-from decision} the result of authorizing
+ * an equal request but with the base action instead, and as its
+ * {@link DerivedActionAuthorizationDecision#getDerivedFromAction() derived-from action} the base action.
  */
 public class DerivedActionAuthorizationRule extends AbstractAuthorizationRule {
 
@@ -72,6 +71,6 @@ public class DerivedActionAuthorizationRule extends AbstractAuthorizationRule {
       // If denied for the base action, abstain.
       ? Optional.empty()
       // Else grant for the derived action.
-      : Optional.of( impliedFrom( request, baseDecision ) );
+      : Optional.of( new DerivedActionAuthorizationDecision( request, baseDecision ) );
   }
 }

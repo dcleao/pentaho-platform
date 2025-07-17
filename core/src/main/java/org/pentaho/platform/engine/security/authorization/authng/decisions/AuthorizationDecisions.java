@@ -1,4 +1,4 @@
-package org.pentaho.platform.engine.security.authorization.authng;
+package org.pentaho.platform.engine.security.authorization.authng.decisions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;

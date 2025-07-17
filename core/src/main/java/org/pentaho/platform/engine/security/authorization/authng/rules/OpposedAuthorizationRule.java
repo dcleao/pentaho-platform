@@ -19,7 +19,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.IAuthorizat
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.decisions.IOpposedAuthorizationDecision;
 import org.pentaho.platform.api.engine.security.authorization.authng.exceptions.AuthorizationException;
-import org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions;
+import org.pentaho.platform.engine.security.authorization.authng.decisions.AuthorizationDecisions;
 
 import java.util.Objects;
 import java.util.Optional;

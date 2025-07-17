@@ -9,7 +9,7 @@ import java.util.Objects;
 
 /**
  * The {@code MatchedRoleAuthorizationDecision} class represents an authorization decision that is granted when the user
- * of an authorization request having a specific role.
+ * of an authorization request has a specific role.
  */
 public class MatchedRoleAuthorizationDecision extends AbstractAuthorizationDecision {
   private static final String JUSTIFICATION =

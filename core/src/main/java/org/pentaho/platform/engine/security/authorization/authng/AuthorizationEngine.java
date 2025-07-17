@@ -28,7 +28,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Objects;
 
-import static org.pentaho.platform.engine.security.authorization.authng.AuthorizationDecisions.deny;
+import static org.pentaho.platform.engine.security.authorization.authng.decisions.AuthorizationDecisions.deny;
 
 public class AuthorizationEngine implements IAuthorizationEngine {
   /**

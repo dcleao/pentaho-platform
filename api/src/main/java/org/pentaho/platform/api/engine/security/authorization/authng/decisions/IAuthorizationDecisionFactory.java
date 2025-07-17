@@ -5,6 +5,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.Authorizati
 
 import java.util.Set;
 
+// TODO: Docs
 public interface IAuthorizationDecisionFactory {
   @NonNull
   IAuthorizationDecision grant( @NonNull AuthorizationRequest request );
