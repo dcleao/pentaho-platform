@@ -2,12 +2,15 @@ package org.pentaho.platform.engine.security.authorization.authng.decisions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import org.pentaho.platform.api.engine.security.authorization.authng.AuthorizationRequest;
+import org.pentaho.platform.engine.security.messages.Messages;
 
 import java.util.Objects;
 
 // TODO: docs
-// TODO: toString
 public class RoleAuthorizationDecision extends AbstractAuthorizationDecision {
+  private static final String JUSTIFICATION =
+    Messages.getInstance().getString( "RoleAuthorizationDecision.JUSTIFICATION" );
+
   @NonNull
   private final String role;
 
@@ -23,8 +26,14 @@ public class RoleAuthorizationDecision extends AbstractAuthorizationDecision {
   }
 
   @Override
+  public String getShortJustification() {
+    // Example: "From role 'Administrator'".
+    return String.format( JUSTIFICATION, role );
+  }
+
+  @Override
   public String toString() {
-    // TODO: implement to string of role decision.
-    return super.toString();
+    // Example: "Role[Granted, name: 'Administrator']"
+    return String.format( "Role[%s, name: '%s']", getGrantedLogText(), role );
   }
 }

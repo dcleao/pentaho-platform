@@ -173,6 +173,12 @@ public abstract class AbstractCompositeResultBuilder {
     }
 
     @Override
+    public String getShortJustification() {
+      // Not really needed for internal use.
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isGranted() {
       return isGranted;
     }

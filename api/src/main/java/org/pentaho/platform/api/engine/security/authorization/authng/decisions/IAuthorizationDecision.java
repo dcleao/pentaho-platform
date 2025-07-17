@@ -43,4 +43,32 @@ public interface IAuthorizationDecision {
   default boolean isDenied() {
     return !isGranted();
   }
+
+  /**
+   * Gets a short, human-readable justification for the authorization decision.
+   * <p>
+   * Should be localized in the current (thread's) system locale, regardless of the user for which the authorization
+   * was evaluated.
+   * <p>
+   * Should be relatively short, suitable for displaying in a short space in a user interface.
+   * <p>
+   * The text should assume that the major details of the authorization request are known, as well as the decision's
+   * granted status.
+   * <p>
+   * Should not attempt to describe the decision recursively, especially if generally composed of a variable number of
+   * other decisions. At most include the first contained decision.
+   * <p>
+   * Can be empty, for degenerate decision objects with no additional information, or for composite decisions.
+   * <p>
+   * Examples;
+   * <ul>
+   *   <li>"" - degenerate, empty, or composite</li>
+   *   <li>"From action 'Other'"</li>
+   *   <li>"Requires action 'Other'" - for a decision denied due to requiring a grant for another action (if !A then !C)</li>
+   *   <li>"From role 'Administrator'"</li>
+   * </ul>
+   *
+   * @return A short justification for the decision.
+   */
+  String getShortJustification();
 }

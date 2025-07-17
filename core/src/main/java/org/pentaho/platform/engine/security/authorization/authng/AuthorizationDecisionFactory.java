@@ -61,8 +61,8 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
   private static class OpposingAuthorizationDecision extends AbstractAuthorizationDecision
     implements IOpposingAuthorizationDecision {
 
-    private static final String OPPOSING_TO_TEXT =
-      Messages.getInstance().getString( "AuthorizationDecisionFactory.OPPOSING_TO" );
+    private static final String OPPOSING_TO_JUSTIFICATION =
+      Messages.getInstance().getString( "AuthorizationDecisionFactory.OPPOSING_TO_JUSTIFICATION" );
 
     @NonNull
     private final IAuthorizationDecision opposedToDecision;
@@ -81,11 +81,17 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     }
 
     @Override
+    public String getShortJustification() {
+      // Example: "Opposing: <opposed decision justification>"
+      return String.format( OPPOSING_TO_JUSTIFICATION, opposedToDecision );
+    }
+
+    @Override
     public String toString() {
-      // Example: "Granted (opposing to: <opposed decision description>)"
+      // Example: "Opposing(Granted, to: DerivedFromAction[Denied, ...])"
       return String.format(
-        OPPOSING_TO_TEXT,
-        getGrantedText(),
+        "Opposing[%s, to: %s]",
+        getGrantedLogText(),
         opposedToDecision );
     }
   }
@@ -93,38 +99,44 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
   private static class ImpliedAuthorizationDecision extends AbstractAuthorizationDecision
     implements IImpliedAuthorizationDecision {
 
-    private static final String IMPLIED_BY_TEXT =
-      Messages.getInstance().getString( "AuthorizationDecisionFactory.IMPLIED_BY" );
+    private static final String IMPLIED_FROM_JUSTIFICATION =
+      Messages.getInstance().getString( "AuthorizationDecisionFactory.IMPLIED_FROM_JUSTIFICATION" );
 
     @NonNull
-    private final IAuthorizationDecision impliedByDecision;
+    private final IAuthorizationDecision impliedFromDecision;
 
     public ImpliedAuthorizationDecision( @NonNull AuthorizationRequest request,
-                                         @NonNull IAuthorizationDecision impliedByDecision ) {
-      // Same granted state of the implied by decision.
-      super( request, impliedByDecision.isGranted() );
+                                         @NonNull IAuthorizationDecision impliedFromDecision ) {
+      // Same granted state of the implied from decision.
+      super( request, impliedFromDecision.isGranted() );
 
-      this.impliedByDecision = impliedByDecision;
+      this.impliedFromDecision = impliedFromDecision;
 
-      if ( request.equals( impliedByDecision.getRequest() ) ) {
+      if ( request.equals( impliedFromDecision.getRequest() ) ) {
         throw new IllegalArgumentException(
-          "Argument 'request' cannot be equal to the request of argument 'impliedByDecision'." );
+          "Argument 'request' cannot be equal to the request of argument 'impliedFromDecision'." );
       }
     }
 
     @NonNull
     @Override
     public IAuthorizationDecision getImpliedFromDecision() {
-      return impliedByDecision;
+      return impliedFromDecision;
+    }
+
+    @Override
+    public String getShortJustification() {
+      // Example: "From <implied-from decision justification>"
+      return String.format( IMPLIED_FROM_JUSTIFICATION, impliedFromDecision );
     }
 
     @Override
     public String toString() {
-      // Example: "Granted (implied by: <implied by decision description>)"
+      // Example: "Implied[Granted, from: GeneralRoleBased[Granted, role=Administrator]]"
       return String.format(
-        IMPLIED_BY_TEXT,
-        getGrantedText(),
-        impliedByDecision );
+        "ImpliedFrom[%s, impliedFrom: %s]",
+        getGrantedLogText(),
+        impliedFromDecision );
     }
   }
 
@@ -150,20 +162,11 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     }
 
     @NonNull
-    protected abstract String getTextPattern();
-
-    @Override
-    public String toString() {
-
-      String decisionsText = getDecisions()
+    protected String getDecisionsLogText() {
+      return getDecisions()
         .stream()
         .map( Object::toString )
-        .collect( Collectors.joining( COMPOSITE_SEPARATOR_TEXT ) );
-
-      return String.format(
-        getTextPattern(),
-        getGrantedText(),
-        decisionsText );
+        .collect( Collectors.joining( ", " ) );
     }
   }
 
@@ -178,10 +181,10 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
       super( request, granted, decisions );
     }
 
-    @NonNull
     @Override
-    protected String getTextPattern() {
-      return ALL_OF_TEXT;
+    public String toString() {
+      // Example: "All[Denied, of: <contained decision 1 text>, <contained decision 2 text>]"
+      return String.format( "All[%s, of: %s]", getGrantedLogText(), getDecisionsLogText() );
     }
   }
 
@@ -196,10 +199,10 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
       super( request, granted, decisions );
     }
 
-    @NonNull
     @Override
-    protected String getTextPattern() {
-      return ANY_OF_TEXT;
+    public String toString() {
+      // Example: "Any[Granted, of: <contained decision 1 text>, <contained decision 2 text>]"
+      return String.format( "Any[%s, of: %s]", getGrantedLogText(), getDecisionsLogText() );
     }
   }
   // endregion
