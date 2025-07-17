@@ -12,6 +12,7 @@ import org.pentaho.platform.api.engine.security.authorization.authng.decisions.I
 import org.pentaho.platform.engine.security.authorization.authng.decisions.AbstractAuthorizationDecision;
 import org.pentaho.platform.engine.security.messages.Messages;
 
+import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -83,7 +84,7 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @Override
     public String getShortJustification() {
       // Example: "Opposing: <opposed decision justification>"
-      return String.format( OPPOSED_TO_JUSTIFICATION, opposedToDecision );
+      return MessageFormat.format( OPPOSED_TO_JUSTIFICATION, opposedToDecision );
     }
 
     @Override
@@ -124,7 +125,7 @@ public class AuthorizationDecisionFactory implements IAuthorizationDecisionFacto
     @Override
     public String getShortJustification() {
       // Example: "From <implied-from decision justification>"
-      return String.format( IMPLIED_FROM_JUSTIFICATION, impliedFromDecision );
+      return MessageFormat.format( IMPLIED_FROM_JUSTIFICATION, impliedFromDecision );
     }
 
     @Override
